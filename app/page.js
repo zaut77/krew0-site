@@ -421,8 +421,8 @@ function Footer() {
       <div style={{ fontSize: 12, color: B.muted, fontFamily: "'DM Sans', sans-serif", marginBottom: 16 }}>Zero People. Only AI.</div>
       <div style={{ display: "flex", gap: 28, justifyContent: "center", marginBottom: 20 }}>
 {[{n:"LinkedIn",u:"https://www.linkedin.com/in/stefano-ciancarelli-118721402"},{n:"Instagram",u:"https://www.instagram.com/thekrew0"},{n:"YouTube",u:"#"}].map(l => (
-  <a key={l.n} href={l.u} target="_blank" rel="noopener noreferrer"
-            onMouseEnter={e => e.target.style.color = B.primary} onMouseLeave={e => e.target.style.color = B.muted}>{l}</a>
+          <a key={l.n} href={l.u} target="_blank" rel="noopener noreferrer" style={{ fontSize: 13, color: B.muted, textDecoration: "none", fontFamily: "'DM Sans', sans-serif", transition: "color 0.2s" }}
+            onMouseEnter={e => e.target.style.color = B.primary} onMouseLeave={e => e.target.style.color = B.muted}>{l.n}</a>
         ))}
       </div>
       <div style={{ fontSize: 11, color: `${B.muted}60`, fontFamily: "'DM Sans', sans-serif" }}>© 2026 KREW0. Tutti i diritti riservati.</div>
