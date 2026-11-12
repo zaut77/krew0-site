@@ -3,8 +3,8 @@
  * Unico punto da cui i dati lasciano la pagina, e sempre per azione esplicita
  * dell'utente:
  *   - PDF salvato sul suo dispositivo
- *   - email aperta nel SUO programma di posta (link mailto:, nessun invio dal sito)
- * Nessun dato viene trasmesso a server. Il PDF scaricato e l'email inviata
+ *   - email: dal servizio di invio (se configurato) o dal SUO programma di posta
+ * A parte l'invio email richiesto dall'utente, nessun dato viene trasmesso a server. Il PDF scaricato e l'email inviata
  * restano dove l'utente li ha messi: da qui in poi non sono più sotto il
  * controllo della pagina.
  * ========================================================================== */
@@ -55,22 +55,66 @@ document.addEventListener('click', async e => {
 });
 
 /* ---- invia per email ----
- * Apre il programma di posta dell'utente con destinatario, copia fissa a
- * MAIL_CC, oggetto e riepilogo. L'allegato non si può aggiungere da una
- * pagina web: scarichiamo il PDF e chiediamo di allegarlo. */
+ * Due strade:
+ *  A. servizio di invio (MAIL_ENDPOINT, solo nella pagina autonoma): il PDF
+ *     parte in allegato dal servizio, con MAIL_CC sempre in copia. Serve il
+ *     codice di invio, chiesto una volta e tenuto solo in memoria.
+ *  B. programma di posta dell'utente (link mailto:): destinatario, copia,
+ *     oggetto e riepilogo precompilati; il PDF viene scaricato e va allegato
+ *     a mano. Usata se il servizio non è configurato o dentro claude.ai. */
+let mailCode = ''; // codice di invio: mai salvato, azzerato dopo l'inattività
+const usaServizio = () => STANDALONE && !!MAIL_ENDPOINT;
+const mostraCodice = (k, on) => { $(`[data-coderow="${k}"]`).hidden = !on; if (on) $(`#${k}-code`).focus(); };
+
+/** Destinatario valido oppure null (con messaggio già mostrato). */
+function destinatario(k) {
+  const dest = $(`#${k}-mail`).value.trim();
+  if (Q[k].blocked) { pdfMsg(k, 'Sistema prima gli importi sotto il minimo.'); return null; }
+  const errore = dest ? vEmail(dest) : 'Scrivi l\'email del destinatario nei dati qui sopra.';
+  if (errore) { pdfMsg(k, errore); $(`#${k}-mail`).focus(); return null; }
+  return dest;
+}
+
+/** Strada A: invio dal servizio. Il corpo è testo semplice per evitare il preflight CORS. */
+async function inviaConServizio(k, dest) {
+  const q = Q[k];
+  pdfMsg(k, 'Invio in corso…');
+  try {
+    const res = await fetch(MAIL_ENDPOINT, {
+      method: 'POST', redirect: 'follow', referrerPolicy: 'no-referrer',
+      body: JSON.stringify({ code: mailCode, to: dest, name: safeName(q.file), summary: quoteText(q, true), pdf: makePdf(q).output('datauristring').split(',')[1] }),
+    });
+    const esito = await res.json();
+    if (esito.ok) { mostraCodice(k, false); pdfMsg(k, `Email inviata a ${dest}, con ${MAIL_CC} in copia.` + FINE); return; }
+    if (esito.status === 403) { mailCode = ''; mostraCodice(k, true); }
+    pdfMsg(k, esito.message || 'Invio non riuscito.');
+  } catch (err) { pdfMsg(k, 'Invio non riuscito: controlla la connessione e riprova. In alternativa scarica il PDF e invialo dalla tua posta.'); }
+}
+
+/** Strada B: programma di posta dell'utente. */
+function inviaConPosta(k, dest) {
+  const q = Q[k], corpo = quoteText(q).slice(0, 1500); // i programmi di posta troncano i link lunghi
+  const tmp = document.createElement('a');
+  tmp.href = `mailto:${encodeURIComponent(dest)}?cc=${encodeURIComponent(MAIL_CC)}&subject=${encodeURIComponent(q.file)}&body=${encodeURIComponent(corpo)}`;
+  tmp.click(); // dentro il gesto dell'utente
+  savePdf(makePdf(q), q.file).catch(() => {});
+  pdfMsg(k, `Ho aperto il programma di posta e scaricato il PDF: allegalo prima di inviare. Destinatario ${dest}, in copia ${MAIL_CC}. Se la posta non si è aperta, scrivi tu a questi due indirizzi.` + FINE);
+}
+
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-mail]'); if (!a) return;
   e.preventDefault();
-  const k = a.dataset.mail, q = Q[k], dest = $(`#${k}-mail`).value.trim();
-  if (q.blocked) { pdfMsg(k, 'Sistema prima gli importi sotto il minimo.'); return; }
-  const errore = dest ? vEmail(dest) : 'Scrivi l\'email del destinatario nei dati qui sopra.';
-  if (errore) { pdfMsg(k, errore); $(`#${k}-mail`).focus(); return; }
-
-  const corpo = quoteText(q).slice(0, 1500); // i programmi di posta troncano i link lunghi
-  const link = `mailto:${encodeURIComponent(dest)}?cc=${encodeURIComponent(MAIL_CC)}&subject=${encodeURIComponent(q.file)}&body=${encodeURIComponent(corpo)}`;
-  const tmp = document.createElement('a'); tmp.href = link; tmp.click(); // dentro il gesto dell'utente
-  savePdf(makePdf(q), q.file).catch(() => {});
-  pdfMsg(k, `Ho aperto il programma di posta e scaricato il PDF: allegalo prima di inviare. Destinatario ${dest}, in copia ${MAIL_CC}. Se la posta non si è aperta, scrivi tu a questi due indirizzi.` + FINE);
+  const k = a.dataset.mail, dest = destinatario(k); if (!dest) return;
+  if (!usaServizio()) { inviaConPosta(k, dest); return; }
+  if (!mailCode) { pdfMsg(k, 'Scrivi il codice di invio e premi Invia.'); mostraCodice(k, true); return; }
+  inviaConServizio(k, dest);
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-sendcode]'); if (!b) return;
+  const k = b.dataset.sendcode, dest = destinatario(k); if (!dest) return;
+  mailCode = $(`#${k}-code`).value; $(`#${k}-code`).value = '';
+  if (!mailCode) { pdfMsg(k, 'Scrivi il codice di invio.'); return; }
+  inviaConServizio(k, dest);
 });
 
 /* ---- visualizza il contratto compilato (sola lettura) ---- */
@@ -113,6 +157,7 @@ function wipeAll(motivo) {
   Object.keys(TIPI).forEach(t => { S.comp[t] = { n: num($(`#c-${t}-n`).value), docs: num($(`#c-${t}-docs`).value), serv: $(`#c-${t}-serv`).value }; });
   if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
   chiudiViewer();
+  ['pmi', 'st'].forEach(k => mostraCodice(k, false));
   ['pmi-err', 'st-err'].forEach(id => { $('#' + id).innerHTML = ''; });
   ['pmi', 'st', 'pmi-c', 'st-c'].forEach(k => pdfMsg(k, ''));
   renderPmi(); genera(); // genera() ricrea le righe: le schede dei clienti spariscono con loro
@@ -129,7 +174,7 @@ document.addEventListener('input', () => document.querySelectorAll('[data-wipems
 let idleTimer = null;
 const riarmaInattivita = () => {
   clearTimeout(idleTimer);
-  idleTimer = setTimeout(() => wipeAll(`Dati cancellati dopo ${IDLE_WIPE_MIN} minuti di inattività.`), IDLE_WIPE_MIN * 60000);
+  idleTimer = setTimeout(() => { mailCode = ''; wipeAll(`Dati cancellati dopo ${IDLE_WIPE_MIN} minuti di inattività.`); }, IDLE_WIPE_MIN * 60000);
 };
 ['input', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, riarmaInattivita, true));
 

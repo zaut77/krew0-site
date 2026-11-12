@@ -78,13 +78,16 @@ function makePdf(q) {
   return doc;
 }
 
-/** Riepilogo in testo semplice, usato come corpo dell'email. */
-function quoteText(q) {
+/**
+ * Riepilogo in testo semplice per l'email.
+ * @param {boolean} [soloDati] senza saluti: li aggiunge il servizio di invio
+ */
+function quoteText(q, soloDati) {
   return [
-    'Buongiorno,', '', 'in allegato il preventivo Yuxme. In sintesi:', '',
+    ...(soloDati ? [] : ['Buongiorno,', '', 'in allegato il preventivo Yuxme. In sintesi:', '']),
     ...q.meta.map(m => `${m[0]}: ${m[1]}`), '',
     ...q.rows.map(r => r.join(' · ')), '',
     ...q.totals.map(t => `${t[0]}: ${t[1]}`), '',
-    ...q.notes, '', 'Resto a disposizione.',
+    ...q.notes, ...(soloDati ? [] : ['', 'Resto a disposizione.']),
   ].join('\n').replace(/−/g, '-');
 }

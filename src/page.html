@@ -56,6 +56,7 @@
   </div>
   <div class="card sheetbox">
     <div class="row" style="justify-content:space-between"><h2>Preventivo per il cliente</h2><span class="row"><a class="btn ghost" data-mail="pmi" href="#pmi">Invia per email</a><button class="btn" type="button" data-pdf="pmi">Scarica il PDF</button></span></div>
+    <div class="row" data-coderow="pmi" hidden><label class="f">Codice di invio<input autocomplete="off" id="pmi-code" type="password"></label><button class="btn" type="button" data-sendcode="pmi">Invia</button></div>
     <p class="hint" data-pdfmsg="pmi" hidden></p>
     <div class="sheetscroll"><div class="sheet" id="pmi-sheet"></div></div>
   </div>
@@ -119,6 +120,7 @@
   </div>
   <div class="card sheetbox">
     <div class="row" style="justify-content:space-between"><h2>Preventivo per lo studio</h2><span class="row"><a class="btn ghost" data-mail="st" href="#commercialisti">Invia per email</a><button class="btn" type="button" data-pdf="st">Scarica il PDF</button></span></div>
+    <div class="row" data-coderow="st" hidden><label class="f">Codice di invio<input autocomplete="off" id="st-code" type="password"></label><button class="btn" type="button" data-sendcode="st">Invia</button></div>
     <p class="hint" data-pdfmsg="st" hidden></p>
     <div class="sheetscroll"><div class="sheet" id="st-sheet"></div></div>
   </div>

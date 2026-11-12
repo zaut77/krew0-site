@@ -70,6 +70,13 @@ const BRAND = {
 
 /** Indirizzo sempre in copia quando un preventivo parte per email. */
 const MAIL_CC = 's.ciancarelli@yuxme.it';
+/**
+ * Indirizzo del servizio di invio email (Google Apps Script, vedi server/Code.gs
+ * e README). Vuoto = nessun invio dal sito: si apre il programma di posta
+ * dell'utente. Se valorizzato, build.py autorizza la connessione a Google nella
+ * Content-Security-Policy; è l'UNICA destinazione di rete ammessa.
+ */
+const MAIL_ENDPOINT = '';
 /** Minuti di inattività dopo i quali i dati inseriti vengono cancellati. */
 const IDLE_WIPE_MIN = 60;
 /** Tetto di clienti per riga, per non generare PDF ingestibili. */

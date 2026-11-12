@@ -47,8 +47,31 @@ Requisito: i dati dei clienti non devono restare da nessuna parte.
   blocca ogni connessione di rete.
 - I dati si azzerano con "Cancella i dati", alla chiusura della scheda e dopo
   60 minuti di inattività.
-- I dati escono solo per azione dell'utente: PDF salvato sul dispositivo, email
-  aperta nel suo programma di posta (sempre con `MAIL_CC` in copia).
+- I dati escono solo per azione dell'utente: PDF salvato sul dispositivo ed
+  email (sempre con `MAIL_CC` in copia).
+- Se il servizio di invio è attivo, è l'unica destinazione di rete ammessa
+  dalla Content-Security-Policy.
+
+## Invio email
+
+Senza configurazione, "Invia per email" apre il programma di posta dell'utente
+e il PDF va allegato a mano. Per l'invio diretto con allegato:
+
+1. Vai su https://script.google.com con l'account da cui devono partire le
+   email e crea un progetto nuovo. Incolla il contenuto di `server/Code.gs`.
+2. Nella funzione `impostaCodice` scrivi un codice di almeno 10 caratteri,
+   premi **Esegui** e autorizza. Poi cancella il codice dal file e salva.
+3. **Esegui il deployment → Nuovo deployment → App web**. Esegui come: *me*.
+   Accesso: *chiunque*. Copia l'indirizzo che termina con `/exec`.
+4. Incolla l'indirizzo in `MAIL_ENDPOINT` (`src/js/00-config.js`), rilancia
+   `python3 build.py` e pubblica.
+5. Comunica il codice di invio, a voce o per canale riservato, a chi deve usarlo.
+
+Il servizio non salva i dati che riceve: conserva solo un contatore giornaliero.
+L'email inviata resta nella cartella "Inviati" dell'account, come ogni email.
+L'accesso "chiunque" è necessario perché la pagina non ha login: la protezione
+è il codice di invio, più il tetto giornaliero e il testo fisso dell'email.
+Per cambiare codice si ripete il punto 2.
 
 ## Punti aperti
 

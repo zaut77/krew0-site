@@ -50,8 +50,13 @@ faces = ''.join(
     for w in weights)
 # Niente rete: solo codice e risorse incorporati. 'unsafe-inline' è necessario
 # perché script e stile sono nel file; non esistono sorgenti esterne ammesse.
+# Unica eccezione: il servizio di invio email, se configurato in 00-config.js.
+import re
+endpoint = re.search(r"const MAIL_ENDPOINT = '([^']*)'", js).group(1)
+assert endpoint == '' or endpoint.startswith('https://script.google.com/macros/s/'), 'MAIL_ENDPOINT deve essere un servizio Apps Script'
+connect = "https://script.google.com https://script.googleusercontent.com" if endpoint else "'none'"
 CSP = ("default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; "
-       "img-src data:; font-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'")
+       f"img-src data:; font-src data:; connect-src {connect}; form-action 'none'; base-uri 'none'")
 standalone = f'''<!doctype html>
 <html lang="it">
 <head>
