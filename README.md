@@ -58,9 +58,11 @@ Requisito: i dati dei clienti non devono restare da nessuna parte.
 
 ## Invio email
 
-Senza configurazione, "Invia per email" apre Gmail in una nuova scheda (o, a
-scelta, il programma di posta predefinito) e il PDF va allegato a mano. Per
-l'invio diretto con allegato:
+Senza configurazione ci sono tre pulsanti: Gmail in una nuova scheda, app di
+posta del dispositivo (entrambi con destinatario e copia già scritti, PDF da
+allegare a mano) e, dove il sistema lo consente, "Condividi il PDF" (PDF già
+allegato, destinatario e copia da scrivere). Per l'invio diretto con allegato
+e copia garantita:
 
 1. Vai su https://script.google.com con l'account da cui devono partire le
    email e crea un progetto nuovo. Incolla il contenuto di `server/Code.gs`.

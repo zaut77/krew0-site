@@ -19,7 +19,8 @@ function pdfMsg(k, testo) { const el = $(`[data-pdfmsg="${k}"]`); el.textContent
 function syncOutput(k) {
   const bloccato = !!Q[k].blocked;
   document.querySelectorAll(`[data-pdf="${k}"],[data-pdf="${k}-c"],[data-view="${k}"]`).forEach(b => { b.disabled = bloccato; });
-  $(`[data-mail="${k}"]`).setAttribute('aria-disabled', bloccato);
+  document.querySelectorAll(`[data-mail="${k}"],[data-mailto="${k}"]`).forEach(a => a.setAttribute('aria-disabled', bloccato));
+  $(`[data-share="${k}"]`).disabled = bloccato;
 }
 
 /**
@@ -59,10 +60,11 @@ document.addEventListener('click', async e => {
  *  A. servizio di invio (MAIL_ENDPOINT, solo nella pagina autonoma): il PDF
  *     parte in allegato dal servizio, con MAIL_CC sempre in copia. Serve il
  *     codice di invio, chiesto una volta e tenuto solo in memoria.
- *  B. posta dell'utente: Gmail in una nuova scheda (o, a scelta, il programma
- *     di posta predefinito) con destinatario, copia, oggetto e riepilogo già
+ *  B. posta dell'utente: Gmail in una nuova scheda oppure l'app di posta del
+ *     dispositivo (mailto:) con destinatario, copia, oggetto e riepilogo già
  *     scritti; il PDF viene scaricato e va allegato a mano. Usata se il
- *     servizio non è configurato o dentro claude.ai. */
+ *     servizio non è configurato o dentro claude.ai.
+ *  C. condivisione di sistema: vedi "Condividi il PDF" più sotto. */
 let mailCode = ''; // codice di invio: mai salvato, azzerato dopo l'inattività
 const usaServizio = () => STANDALONE && !!MAIL_ENDPOINT;
 const mostraCodice = (k, on) => { $(`[data-coderow="${k}"]`).hidden = !on; if (on) $(`#${k}-code`).focus(); };
@@ -118,13 +120,32 @@ document.addEventListener('click', e => {
   if (!mailCode) { pdfMsg(k, 'Scrivi il codice di invio e premi Invia.'); mostraCodice(k, true); return; }
   inviaConServizio(k, dest);
 });
-// "Usa un altro programma di posta"
+// "Invia con l'app di posta": programma di posta predefinito del dispositivo
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-mailto]'); if (!a) return;
   const k = a.dataset.mailto, dest = destinatario(k);
   if (!dest) { e.preventDefault(); return; }
   preparaLinkPosta(a, k, dest, false);
 });
+/* "Condividi il PDF": foglio di condivisione del sistema (telefoni, tablet e
+ * alcuni computer). È l'unico modo in cui una pagina può passare un ALLEGATO
+ * all'app di posta; in cambio non può precompilare destinatario e copia, che
+ * vengono ricordati nel testo del messaggio. */
+const fileProva = () => new File(['%PDF'], 'prova.pdf', { type: 'application/pdf' });
+const puoCondividere = STANDALONE && !!navigator.canShare && navigator.canShare({ files: [fileProva()] });
+document.querySelectorAll('[data-share]').forEach(b => { b.hidden = !puoCondividere; });
+
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-share]'); if (!b) return;
+  const k = b.dataset.share, q = Q[k], dest = $(`#${k}-mail`).value.trim();
+  if (q.blocked) { pdfMsg(k, 'Sistema prima gli importi sotto il minimo.'); return; }
+  const file = new File([makePdf(q).output('blob')], safeName(q.file) + '.pdf', { type: 'application/pdf' });
+  try {
+    await navigator.share({ files: [file], title: q.file, text: `${q.file}\nDestinatario: ${dest || 'da indicare'}\nIn copia: ${MAIL_CC}` });
+    pdfMsg(k, `PDF passato all'app scelta. Ricorda di mettere ${MAIL_CC} in copia.` + FINE);
+  } catch (err) { if (err && err.name !== 'AbortError') pdfMsg(k, 'Condivisione non riuscita: usa uno degli altri pulsanti.'); }
+});
+
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-sendcode]'); if (!b) return;
   const k = b.dataset.sendcode, dest = destinatario(k); if (!dest) return;
