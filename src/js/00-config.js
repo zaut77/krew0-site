@@ -5,6 +5,7 @@
  * I file in src/js sono concatenati in ordine numerico da build.py.
  *
  *   00 config      listino, etichette, marchio, impostazioni
+ *   05 abi         nomi delle banche per codice ABI (generato)
  *   10 utils       formattazione e piccoli aiuti per il DOM
  *   20 calc        regole di prezzo (funzioni pure, coperte da test/)
  *   30 validators  controlli di formato: CF, P.IVA, date, IBAN
@@ -61,11 +62,26 @@ const ESIGENZE = {
   full: 'Delega completa, responsabilità a Yuxme (Full)',
 };
 
-/** Marchio. Il segnaposto del logo è sostituito da build.py con assets/logo-yuxme.png in base64. */
+/**
+ * Marchio e risorse grafiche. I segnaposto ASSET (immagine) e B64 (file in
+ * base64) tra doppi trattini bassi sono sostituiti da build.py.
+ */
 const BRAND = {
-  logo: '__LOGO__',
-  logoRatio: 494 / 138, // larghezza / altezza
+  logo: '__ASSET:assets/logo-yuxme.png__',            // logo del sito yuxme.it
+  logoRatio: 494 / 138,                                // larghezza / altezza
+  logoContratto: '__ASSET:assets/logo-contratto.png__', // logo dei contratti originali, con la dicitura
+  sepaSimbolo: '__ASSET:assets/sepa-simbolo.png__',     // simbolo nel mandato SEPA originale
+  sepaFreccia: '__ASSET:assets/sepa-freccia.png__',     // freccia accanto alla firma del mandato
   pdf: { accent: [54, 41, 110], soft: [237, 235, 247], ink: [63, 64, 61], muted: [107, 109, 102], label: [77, 64, 132] },
+};
+/**
+ * Font Carlito (licenza SIL OFL), metricamente compatibile con il Calibri dei
+ * contratti originali, ridotto ai caratteri latini. Usato solo nei PDF dei contratti.
+ */
+const PDF_FONTS = {
+  Regular: '__B64:vendor/pdf-fonts/Carlito-Regular.ttf__',
+  Bold: '__B64:vendor/pdf-fonts/Carlito-Bold.ttf__',
+  Italic: '__B64:vendor/pdf-fonts/Carlito-Italic.ttf__',
 };
 
 /** Indirizzo sempre in copia quando un preventivo parte per email. */
@@ -81,17 +97,7 @@ const MAIL_ENDPOINT = '';
 const IDLE_WIPE_MIN = 60;
 /** Tetto di clienti per riga, per non generare PDF ingestibili. */
 const MAX_CLIENTI_RIGA = 500;
-
-/**
- * Codici ABI delle banche principali, per ricavare il nome dall'IBAN.
- * Elenco parziale e inserito a memoria: DA VERIFICARE con il registro ABI.
- * Se l'ABI non è in elenco si mostra il solo codice.
- */
-const ABI = {
-  '03069': 'Intesa Sanpaolo', '02008': 'UniCredit', '01030': 'Banca Monte dei Paschi di Siena',
-  '05034': 'Banco BPM', '05387': 'BPER Banca', '01005': 'BNL', '07601': 'Poste Italiane',
-  '03015': 'FinecoBank', '03268': 'Banca Sella', '05696': 'Banca Popolare di Sondrio',
-  '03032': 'Credito Emiliano', '06230': 'Crédit Agricole Italia', '03062': 'Banca Mediolanum',
-  '03104': 'Deutsche Bank', '03440': 'Banco di Desio e della Brianza', '03075': 'Banca Generali',
-  '03296': 'Fideuram',
-};
+/** Giorni di validità proposti per un preventivo (la data resta modificabile). */
+const VALIDITA_GIORNI = 30;
+/** Elenco degli sportelli per ABI e CAB: caricato dallo stesso sito solo quando si scrive un IBAN. */
+const ABICAB_URL = 'data/abicab.txt.gz';

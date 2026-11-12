@@ -1,7 +1,7 @@
 /* ==========================================================================
  * 40 · FOGLIO DEL PREVENTIVO
  * Un solo modello dati per l'anteprima in pagina, il PDF e il testo dell'email:
- *   { file, blocked, data, meta:[[etichetta,valore]], cols:[{t, r?}],
+ *   { file, blocked, data, footer, meta:[[etichetta,valore]], cols:[{t, r?}],
  *     rows:[[…]], totals:[[etichetta, valore, evidenzia?]], notes:[…] }
  * ========================================================================== */
 
@@ -73,7 +73,7 @@ function makePdf(q) {
   const pagine = doc.getNumberOfPages();
   for (let i = 1; i <= pagine; i++) {
     doc.setPage(i); doc.setFontSize(8); doc.setTextColor(...K.muted);
-    doc.text('Yuxme', M, 289); doc.text(`Pagina ${i} di ${pagine}`, W - M, 289, { align: 'right' });
+    doc.text(pdfTxt(q.footer || 'Yuxme'), M, 289); doc.text(`Pagina ${i} di ${pagine}`, W - M, 289, { align: 'right' });
   }
   return doc;
 }

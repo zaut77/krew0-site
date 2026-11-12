@@ -169,3 +169,9 @@ input.bad,td input.bad{border-color:var(--bad);background:var(--bad-soft);color:
 .titlebar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
 .btn[aria-disabled="true"]{opacity:.45;pointer-events:none}
 .grid2 input,.grid2 select{height:44px}
+details.cdata{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+details.cdata>summary{cursor:pointer;font-weight:600;color:var(--accent)}
+details.cdata[open]>summary{margin-bottom:12px}
+details.cdata>*+*{margin-top:10px}
+textarea{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0;resize:vertical}
+.hint a{color:var(--teal);font-weight:600}

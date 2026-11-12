@@ -35,3 +35,19 @@ const opts = (map, sel) => Object.entries(map).map(([k, v]) => `<option value="$
 const showNotes = (el, notes) => { el.innerHTML = notes.map(([tipo, testo]) => `<p class="${tipo}">${esc(testo)}</p>`).join(''); };
 /** Nome di file senza caratteri vietati dai sistemi operativi. */
 const safeName = s => s.replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim();
+
+/** Data di oggi più n giorni, in gg/mm/aaaa. */
+const tra = giorni => { const d = new Date(); d.setDate(d.getDate() + giorni); return d.toLocaleDateString(IT, { day: '2-digit', month: '2-digit', year: 'numeric' }); };
+/**
+ * Numero del preventivo. Senza server non può esistere un progressivo comune:
+ * si usa data e ora di creazione, che è univoco per chi lo emette. Modificabile.
+ * @param {string} sigla 'P' (PMI) o 'S' (studio)
+ */
+function nuovoNumero(sigla) {
+  const d = new Date(), z = n => String(n).padStart(2, '0');
+  return `YX${sigla}-${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}`;
+}
+/** Riga del piè di pagina del preventivo. */
+const piede = (numero, prep, valido) => [numero && 'Preventivo n. ' + numero, prep && 'preparato da ' + prep, valido && 'valido fino al ' + valido].filter(Boolean).join(' · ') || 'Yuxme';
+/** Voci di testata comuni: numero e validità (se presenti). */
+const metaNumero = (numero, valido) => [].concat(numero ? [['Preventivo n.', numero]] : [], valido ? [['Valido fino al', valido]] : []);

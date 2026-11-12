@@ -51,15 +51,20 @@ function vIban(v) {
 /** Indirizzo email plausibile (controllo volutamente semplice). */
 const vEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? '' : 'Indirizzo email non valido.';
 
+/** Sportelli per ABI → { CAB: località }. null finché l'elenco non è stato caricato (vedi 51). */
+let SPORTELLI = null;
+
 /**
  * Banca e sportello ricavati da un IBAN italiano valido.
+ * L'elenco non è ufficiale: se banca o sportello non ci sono, restano i codici.
  * @returns {?{banca:string, agenzia:string}} null se l'IBAN non è italiano o non è valido
  */
 function ibanInfo(iban) {
   const v = String(iban || '').replace(/\s/g, '').toUpperCase();
   if (!v.startsWith('IT') || vIban(v)) return null;
   const abi = v.slice(5, 10), cab = v.slice(10, 15);
-  return { banca: ABI[abi] ? `${ABI[abi]} (ABI ${abi})` : `ABI ${abi}`, agenzia: `CAB ${cab}` };
+  const localita = SPORTELLI && SPORTELLI[abi] && SPORTELLI[abi][cab];
+  return { banca: ABI[abi] ? `${ABI[abi]} (ABI ${abi})` : `ABI ${abi}`, agenzia: localita ? `${localita} (CAB ${cab})` : `CAB ${cab}` };
 }
 
 /** Porta il valore nella forma canonica del suo tipo (maiuscole, spazi, zeri). */

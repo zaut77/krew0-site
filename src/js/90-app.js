@@ -41,6 +41,7 @@ function route() {
 window.addEventListener('hashchange', route);
 
 /* ---- avvio ---- */
+datiPredefiniti();
 renderPmi();
 genera();
 route();

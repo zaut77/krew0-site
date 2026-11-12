@@ -59,9 +59,10 @@ document.addEventListener('click', async e => {
  *  A. servizio di invio (MAIL_ENDPOINT, solo nella pagina autonoma): il PDF
  *     parte in allegato dal servizio, con MAIL_CC sempre in copia. Serve il
  *     codice di invio, chiesto una volta e tenuto solo in memoria.
- *  B. programma di posta dell'utente (link mailto:): destinatario, copia,
- *     oggetto e riepilogo precompilati; il PDF viene scaricato e va allegato
- *     a mano. Usata se il servizio non è configurato o dentro claude.ai. */
+ *  B. posta dell'utente: Gmail in una nuova scheda (o, a scelta, il programma
+ *     di posta predefinito) con destinatario, copia, oggetto e riepilogo già
+ *     scritti; il PDF viene scaricato e va allegato a mano. Usata se il
+ *     servizio non è configurato o dentro claude.ai. */
 let mailCode = ''; // codice di invio: mai salvato, azzerato dopo l'inattività
 const usaServizio = () => STANDALONE && !!MAIL_ENDPOINT;
 const mostraCodice = (k, on) => { $(`[data-coderow="${k}"]`).hidden = !on; if (on) $(`#${k}-code`).focus(); };
@@ -91,23 +92,38 @@ async function inviaConServizio(k, dest) {
   } catch (err) { pdfMsg(k, 'Invio non riuscito: controlla la connessione e riprova. In alternativa scarica il PDF e invialo dalla tua posta.'); }
 }
 
-/** Strada B: programma di posta dell'utente. */
-function inviaConPosta(k, dest) {
-  const q = Q[k], corpo = quoteText(q).slice(0, 1500); // i programmi di posta troncano i link lunghi
-  const tmp = document.createElement('a');
-  tmp.href = `mailto:${encodeURIComponent(dest)}?cc=${encodeURIComponent(MAIL_CC)}&subject=${encodeURIComponent(q.file)}&body=${encodeURIComponent(corpo)}`;
-  tmp.click(); // dentro il gesto dell'utente
+/**
+ * Strada B: posta dell'utente. Si usa un link vero (<a href>), perché è
+ * l'unico modo affidabile in ogni ambiente: Gmail in una nuova scheda oppure
+ * il programma di posta predefinito (mailto:). Il PDF viene scaricato a parte.
+ * @param {HTMLAnchorElement} a  link cliccato: gli si assegna l'indirizzo giusto
+ * @param {boolean} gmail        true = Gmail nel browser, false = mailto:
+ */
+function preparaLinkPosta(a, k, dest, gmail) {
+  const q = Q[k], enc = encodeURIComponent, corpo = quoteText(q).slice(0, 1500); // i link lunghi vengono troncati
+  a.href = gmail
+    ? `https://mail.google.com/mail/?view=cm&fs=1&to=${enc(dest)}&cc=${enc(MAIL_CC)}&su=${enc(q.file)}&body=${enc(corpo)}`
+    : `mailto:${enc(dest)}?cc=${enc(MAIL_CC)}&subject=${enc(q.file)}&body=${enc(corpo)}`;
   savePdf(makePdf(q), q.file).catch(() => {});
-  pdfMsg(k, `Ho aperto il programma di posta e scaricato il PDF: allegalo prima di inviare. Destinatario ${dest}, in copia ${MAIL_CC}. Se la posta non si è aperta, scrivi tu a questi due indirizzi.` + FINE);
+  pdfMsg(k, `Ho aperto ${gmail ? 'Gmail' : 'il programma di posta'} e scaricato il PDF: allegalo prima di inviare. Destinatario ${dest}, in copia ${MAIL_CC}.` + FINE);
 }
 
+// "Invia per email": servizio di invio se configurato, altrimenti Gmail
 document.addEventListener('click', e => {
   const a = e.target.closest('[data-mail]'); if (!a) return;
+  const k = a.dataset.mail, dest = destinatario(k);
+  if (!dest) { e.preventDefault(); return; }
+  if (!usaServizio()) { preparaLinkPosta(a, k, dest, true); return; } // il browser segue il link appena impostato
   e.preventDefault();
-  const k = a.dataset.mail, dest = destinatario(k); if (!dest) return;
-  if (!usaServizio()) { inviaConPosta(k, dest); return; }
   if (!mailCode) { pdfMsg(k, 'Scrivi il codice di invio e premi Invia.'); mostraCodice(k, true); return; }
   inviaConServizio(k, dest);
+});
+// "Usa un altro programma di posta"
+document.addEventListener('click', e => {
+  const a = e.target.closest('[data-mailto]'); if (!a) return;
+  const k = a.dataset.mailto, dest = destinatario(k);
+  if (!dest) { e.preventDefault(); return; }
+  preparaLinkPosta(a, k, dest, false);
 });
 document.addEventListener('click', e => {
   const b = e.target.closest('[data-sendcode]'); if (!b) return;
@@ -140,13 +156,19 @@ $('#viewer-print').addEventListener('click', () => {
 
 /* ---- cancellazione dei dati ---- */
 
+/** Numero e validità proposti per un nuovo preventivo. */
+function datiPredefiniti() {
+  $('#pmi-num').value = nuovoNumero('P'); $('#st-num').value = nuovoNumero('S');
+  $('#pmi-val').value = $('#st-val').value = tra(VALIDITA_GIORNI);
+}
+
 /**
  * Riporta la pagina allo stato iniziale: svuota campi, contratti, righe e
  * anteprime. Restano solo i numeri d'esempio, che non sono dati di clienti.
  * @param {string} motivo testo mostrato all'utente
  */
 function wipeAll(motivo) {
-  document.querySelectorAll('main input, main select').forEach(el => {
+  document.querySelectorAll('main input, main select, main textarea').forEach(el => {
     if (el.type === 'checkbox') el.checked = el.defaultChecked;
     else if (el.tagName === 'SELECT') { const i = [...el.options].findIndex(o => o.defaultSelected); el.selectedIndex = i < 0 ? 0 : i; }
     else el.value = el.defaultValue;
@@ -160,6 +182,8 @@ function wipeAll(motivo) {
   ['pmi', 'st'].forEach(k => mostraCodice(k, false));
   ['pmi-err', 'st-err'].forEach(id => { $('#' + id).innerHTML = ''; });
   ['pmi', 'st', 'pmi-c', 'st-c'].forEach(k => pdfMsg(k, ''));
+  $('#st-paste-msg').textContent = '';
+  datiPredefiniti();
   renderPmi(); genera(); // genera() ricrea le righe: le schede dei clienti spariscono con loro
   document.querySelectorAll('[data-wipemsg]').forEach(el => showNotes(el, [['ok', motivo]]));
 }

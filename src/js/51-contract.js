@@ -28,6 +28,26 @@ const TABCOLS = ['Ragione sociale', 'Rappresentante legale', 'P.Iva', 'Regime', 
 /** Campo modificabile di ogni colonna delle tabelle clienti (null = sola lettura). */
 const TABFIELDS = ['nome', 'rl', 'pi', null, 'per'];
 
+/**
+ * Campi del riquadro "Dati per il contratto": [chiave, etichetta].
+ * Sono gli stessi campi del testo: il riquadro è solo un modo più comodo di
+ * compilarli; scrivere nel riquadro o nel contratto è equivalente.
+ */
+const CFORM = {
+  pmi: [['sig', 'Legale rappresentante'], ['natoA', 'Nato a'], ['natoPr', 'Provincia di nascita'], ['natoIl', 'Data di nascita'], ['cf', 'Codice fiscale'],
+    ['resA', 'Residenza: comune'], ['resPr', 'Residenza: provincia'], ['resVia', 'Residenza: via'], ['resN', 'Residenza: n. civico'], ['resCap', 'Residenza: CAP'],
+    ['sede', 'Sede: comune'], ['sedeVia', 'Sede: via'], ['sedeN', 'Sede: n. civico'], ['sedePr', 'Sede: provincia'], ['sedeCap', 'Sede: CAP'],
+    ['piva', 'Partita IVA'], ['cfAz', 'Codice fiscale azienda'], ['pec', 'PEC'], ['sdi', 'Codice SDI'],
+    ['attiv', 'Contributo di attivazione (€)'], ['decor', 'Decorrenza del canone'], ['sIban', 'IBAN'], ['luogo', 'Luogo della firma']],
+  st: [['sede', 'Sede dello studio'], ['piva', 'Codice fiscale e partita IVA'], ['sig', 'Legale rappresentante'], ['natoA', 'Nato a'], ['natoPr', 'Provincia di nascita'],
+    ['natoIl', 'Data di nascita'], ['cf', 'Codice fiscale'], ['dom', 'Domicilio'], ['ordine', 'Ordine dei commercialisti di'], ['ordN', 'N. di iscrizione'], ['ordSez', 'Sezione'],
+    ['sIban', 'IBAN'], ['luogo', 'Luogo della firma']],
+};
+for (const c in CFORM) {
+  $(`#${c}-cform`).innerHTML = CFORM[c].map(([k, etichetta]) =>
+    `<label class="f">${esc(etichetta)}<input autocomplete="off" class="cin" id="${c}-cf-${k}" data-c="${c}" data-k="${k}" type="text"></label>`).join('');
+}
+
 /** Valori calcolati da altri campi dello stesso contratto. */
 function derived(c, k) {
   const u = C[c].user, unisci = a => a.filter(Boolean).join(' ');
@@ -126,7 +146,7 @@ function contractErrors(c) {
 function showContractErrors(c) {
   const errs = contractErrors(c), min = C[c].min;
   showNotes($(`#${c}-cerr`), errs.map(x => ['bad', x.e]));
-  document.querySelectorAll(`#${c}-contract .fld`).forEach(el => {
+  document.querySelectorAll(`#${c}-contract .fld, .cin[data-c="${c}"]`).forEach(el => {
     const k = el.dataset.k, cid = el.dataset.cid;
     const formato = errs.some(x => (k && x.k === k) || (cid && el.dataset.f === 'pi' && x.cid === cid));
     const prezzo = !!k && min[k] != null && !(itNum(cval(c, k)) >= min[k] - 0.005);
@@ -135,12 +155,56 @@ function showContractErrors(c) {
   return errs;
 }
 
-/** Riallinea i campi che ripetono un valore appena cambiato. */
+/** Riallinea i campi (nel contratto e nel riquadro dati) dopo una modifica. */
 function syncFields(c, tranne) {
   document.querySelectorAll(`#${c}-contract .fld[data-k]`).forEach(el => {
     if (el === tranne) return;
     const v = cval(c, el.dataset.k); if (el.textContent !== v) el.textContent = v;
   });
+  document.querySelectorAll(`.cin[data-c="${c}"]`).forEach(el => {
+    if (el === tranne) return;
+    const v = C[c].user[el.dataset.k] || ''; if (el.value !== v) el.value = v; // solo ciò che è stato scritto, non i valori ripetuti
+  });
+}
+
+/**
+ * Carica una volta l'elenco degli sportelli, dallo stesso sito e solo quando
+ * qualcuno scrive un IBAN. Il file è uguale per tutti: la richiesta non rivela
+ * nulla del cliente. Se non si riesce a caricarlo restano i codici ABI e CAB.
+ */
+let sportelliRichiesti = false;
+async function caricaSportelli() {
+  if (sportelliRichiesti) return; sportelliRichiesti = true;
+  try {
+    const res = await fetch(ABICAB_URL);
+    if (!res.ok || !('DecompressionStream' in window)) return;
+    const testo = await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).text();
+    const elenco = {};
+    for (const riga of testo.split('\n')) {
+      const [abi, lista] = riga.split('\t'), sportelli = {};
+      for (const voce of (lista || '').split(';')) { const i = voce.indexOf('='); if (i > 0) sportelli[voce.slice(0, i)] = voce.slice(i + 1); }
+      elenco[abi] = sportelli;
+    }
+    SPORTELLI = elenco;
+    ['pmi', 'st'].forEach(c => syncFields(c));
+  } catch (err) { /* senza elenco restano i codici */ }
+}
+
+/** Salva un valore scritto dall'utente (o lo toglie se vuoto). */
+function setCampo(c, k, v) { if (v) C[c].user[k] = v; else delete C[c].user[k]; if (k === 'sIban' && v) caricaSportelli(); }
+
+/**
+ * Chiude la modifica di un campo: forma canonica, prezzo mai sotto il minimo.
+ * @returns {string} messaggio d'errore sul prezzo, oppure ''
+ */
+function chiudiCampo(c, k) {
+  const st = C[c], t = ftype(c, k);
+  if (st.user[k] != null && t) st.user[k] = normVal(t, st.user[k]);
+  if (st.min[k] != null && st.user[k] != null && !(itNum(st.user[k]) >= st.min[k] - 0.005)) {
+    delete st.user[k];
+    return `Errore: il campo "${NOMI[k]}" non può scendere sotto ${dec(st.min[k])} €. Ho ripristinato il valore.`;
+  }
+  return '';
 }
 
 /* ---- eventi dei campi (delegati: il contratto viene ridisegnato spesso) ---- */
@@ -151,7 +215,7 @@ document.addEventListener('input', e => {
   const v = el.textContent.replace(/\s+/g, ' ').trim();
   if (el.dataset.cid) { const unit = unitOf(el.dataset.cid); if (unit) unit[el.dataset.f] = v; return; }
   const { c, k } = el.dataset;
-  if (v) C[c].user[k] = v; else delete C[c].user[k];
+  setCampo(c, k, v);
   syncFields(c, el);
 });
 
@@ -163,13 +227,22 @@ document.addEventListener('focusout', e => {
     if (unit && el.dataset.f === 'pi') { unit.pi = normVal('piva', unit.pi || ''); el.textContent = unit.pi; }
     showContractErrors('st'); return;
   }
-  const { c, k } = el.dataset, t = ftype(c, k), st = C[c];
-  if (st.user[k] != null && t) { st.user[k] = normVal(t, st.user[k]); el.textContent = st.user[k]; }
-  if (st.min[k] != null && st.user[k] != null && !(itNum(st.user[k]) >= st.min[k] - 0.005)) {
-    delete st.user[k]; el.textContent = cval(c, k); syncFields(c, el); showContractErrors(c);
-    $(`#${c}-cerr`).insertAdjacentHTML('afterbegin', `<p class="bad">${esc(`Errore: il campo "${NOMI[k]}" non può scendere sotto ${dec(st.min[k])} €. Ho ripristinato il valore.`)}</p>`);
-    return;
-  }
+  const { c, k } = el.dataset, errore = chiudiCampo(c, k);
+  el.textContent = cval(c, k);
+  syncFields(c, el); showContractErrors(c);
+  if (errore) $(`#${c}-cerr`).insertAdjacentHTML('afterbegin', `<p class="bad">${esc(errore)}</p>`);
+});
+
+// riquadro "Dati per il contratto": stessi campi, stesse regole
+document.addEventListener('input', e => {
+  const el = e.target; if (!el.classList || !el.classList.contains('cin')) return;
+  setCampo(el.dataset.c, el.dataset.k, el.value.replace(/\s+/g, ' ').trim());
+  syncFields(el.dataset.c, el);
+});
+document.addEventListener('focusout', e => {
+  const el = e.target; if (!el.classList || !el.classList.contains('cin')) return;
+  const { c, k } = el.dataset; chiudiCampo(c, k);
+  el.value = C[c].user[k] || '';
   syncFields(c, el); showContractErrors(c);
 });
 

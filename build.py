@@ -7,8 +7,8 @@ Produce due file con lo stesso contenuto e due confezioni diverse:
                    librerie caricati dai CDN ammessi dalla piattaforma.
   index.html       pagina autonoma per GitHub Pages o un qualsiasi server:
                    font e librerie incorporati e una Content-Security-Policy
-                   che vieta ogni connessione di rete. È la garanzia tecnica
-                   che i dati inseriti non possano lasciare il browser.
+                   che vieta le connessioni verso altri siti. È la garanzia
+                   tecnica che i dati inseriti non possano lasciare il browser.
 
 Uso:  python3 build.py
 """
@@ -21,10 +21,12 @@ b64 = lambda p: base64.b64encode((ROOT / p).read_bytes()).decode()
 TITLE = 'Preventivatore Yuxme'
 css = read('src/style.css')
 page = read('src/page.html')
-logo = 'data:image/png;base64,' + b64('assets/logo-yuxme.png')
 js = '\n'.join(read(p) for p in sorted(str(pathlib.Path(f).relative_to(ROOT)) for f in glob.glob(str(ROOT / 'src/js/*.js'))))
-assert js.count("'__LOGO__'") == 1, 'segnaposto del logo mancante o ripetuto'
-js = js.replace("'__LOGO__'", "'" + logo + "'")
+# risorse incorporate: immagini come data URI, altri file in base64 semplice
+import re
+js = re.sub(r"'__ASSET:(.+?)__'", lambda m: "'data:image/png;base64," + b64(m.group(1)) + "'", js)
+js = re.sub(r"'__B64:(.+?)__'", lambda m: "'" + b64(m.group(1)) + "'", js)
+assert '__ASSET:' not in js and '__B64:' not in js
 
 # --- claude.ai --------------------------------------------------------------
 CDN = 'https://cdnjs.cloudflare.com/ajax/libs'
@@ -50,11 +52,11 @@ faces = ''.join(
     for w in weights)
 # Niente rete: solo codice e risorse incorporati. 'unsafe-inline' è necessario
 # perché script e stile sono nel file; non esistono sorgenti esterne ammesse.
-# Unica eccezione: il servizio di invio email, se configurato in 00-config.js.
-import re
+# Eccezioni: lo stesso sito (elenco sportelli in data/) e, se configurato in
+# 00-config.js, il servizio di invio email.
 endpoint = re.search(r"const MAIL_ENDPOINT = '([^']*)'", js).group(1)
 assert endpoint == '' or endpoint.startswith('https://script.google.com/macros/s/'), 'MAIL_ENDPOINT deve essere un servizio Apps Script'
-connect = "https://script.google.com https://script.googleusercontent.com" if endpoint else "'none'"
+connect = "'self'" + (" https://script.google.com https://script.googleusercontent.com" if endpoint else "")
 CSP = ("default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; "
        f"img-src data:; font-src data:; connect-src {connect}; form-action 'none'; base-uri 'none'")
 standalone = f'''<!doctype html>

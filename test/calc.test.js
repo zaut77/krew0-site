@@ -3,9 +3,9 @@
  * I casi vengono dalle fonti: mail e fogli di Parretta e Sala. */
 const fs = require('fs'), path = require('path'), assert = require('assert');
 const src = f => fs.readFileSync(path.join(__dirname, '../src/js', f), 'utf8');
-const api = new Function(src('00-config.js') + src('20-calc.js') + src('30-validators.js') +
-  ';return {LISTINO,fascia,prezzoCliente,calcPmi,calcStudio,vCf,vPiva,vIban,vDate,vEmail,ibanInfo,normVal};')();
-const { fascia, calcPmi, calcStudio, vCf, vPiva, vIban, vDate, vEmail, ibanInfo, normVal } = api;
+const api = new Function(src('00-config.js') + src('05-abi.js') + src('20-calc.js') + src('30-validators.js') +
+  ';return {LISTINO,ABI,fascia,prezzoCliente,calcPmi,calcStudio,vCf,vPiva,vIban,vDate,vEmail,ibanInfo,normVal};')();
+const { ABI, fascia, calcPmi, calcStudio, vCf, vPiva, vIban, vDate, vEmail, ibanInfo, normVal } = api;
 const quasi = (a, b) => assert.ok(Math.abs(a - b) < 0.005, `${a} ≠ ${b}`);
 const riga = (tipo, serv, n, docs, ov = null) => ({ tipo, serv, n, docs, ov, units: [] });
 let n = 0; const test = (nome, fn) => { fn(); n++; console.log('ok  ' + nome); };
@@ -53,7 +53,9 @@ test('controlli di formato', () => {
   assert.equal(vDate('10/12/1985'), ''); assert.notEqual(vDate('31/02/2020'), '');
   assert.equal(vEmail('a@b.it'), ''); assert.notEqual(vEmail('a@b'), '');
   assert.equal(normVal('iban', 'it60x0542811101000000123456'), 'IT60 X054 2811 1010 0000 0123 456');
-  assert.deepEqual(ibanInfo('IT60X0542811101000000123456'), { banca: 'ABI 05428', agenzia: 'CAB 11101' });
+  const info = ibanInfo('IT60X0542811101000000123456');
+  assert.ok(info.banca.endsWith('(ABI 05428)')); assert.equal(info.agenzia, 'CAB 11101'); // sportelli non caricati
   assert.equal(ibanInfo('IT61X0542811101000000123456'), null);
+  assert.equal(ABI['03069'], 'Intesa Sanpaolo Spa'); assert.equal(ABI['02008'], 'Unicredit Spa');
 });
 console.log(`\n${n} test superati`);

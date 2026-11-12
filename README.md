@@ -27,7 +27,10 @@ node test/calc.test.js    # verifica le regole di prezzo
 | `src/js/51-contract.js`, `52-contract-pdf.js` | Campi compilabili e PDF del contratto |
 | `src/js/60-pmi.js`, `61-studio.js` | Le due pagine di preventivo |
 | `src/js/80-output.js` | Download, email, cancellazione dei dati |
-| `vendor/` | jsPDF 2.5.1, jsPDF-AutoTable 3.8.2, font (solo per la versione autonoma) |
+| `src/js/05-abi.js`, `data/abicab.txt.gz` | Banche e sportelli per leggere l'IBAN (generati da `tools/abicab.py`) |
+| `vendor/` | jsPDF 2.5.1, jsPDF-AutoTable 3.8.2, font della pagina; `pdf-fonts/` Carlito (SIL OFL) per i PDF dei contratti |
+| `server/Code.gs` | Servizio di invio email (Google Apps Script) |
+| `CONTRATTI-DIFFERENZE.md` | Differenze tra i contratti originali e quelli generati |
 
 ## Regole commerciali
 
@@ -44,7 +47,8 @@ Requisito: i dati dei clienti non devono restare da nessuna parte.
 
 - Nessun salvataggio: niente localStorage, cookie o database.
 - Nessuna trasmissione: la versione autonoma ha una Content-Security-Policy che
-  blocca ogni connessione di rete.
+  blocca le connessioni verso altri siti. L'unico file richiesto dopo il
+  caricamento è l'elenco degli sportelli, dallo stesso sito e uguale per tutti.
 - I dati si azzerano con "Cancella i dati", alla chiusura della scheda e dopo
   60 minuti di inattività.
 - I dati escono solo per azione dell'utente: PDF salvato sul dispositivo ed
@@ -54,8 +58,9 @@ Requisito: i dati dei clienti non devono restare da nessuna parte.
 
 ## Invio email
 
-Senza configurazione, "Invia per email" apre il programma di posta dell'utente
-e il PDF va allegato a mano. Per l'invio diretto con allegato:
+Senza configurazione, "Invia per email" apre Gmail in una nuova scheda (o, a
+scelta, il programma di posta predefinito) e il PDF va allegato a mano. Per
+l'invio diretto con allegato:
 
 1. Vai su https://script.google.com con l'account da cui devono partire le
    email e crea un progetto nuovo. Incolla il contenuto di `server/Code.gs`.
@@ -75,6 +80,9 @@ Per cambiare codice si ripete il punto 2.
 
 ## Punti aperti
 
-- Testo dei contratti e riga "Condizioni particolari": da far rileggere a chi gestisce i contratti.
+- Testo dei contratti: da far rileggere a chi li gestisce, con `CONTRATTI-DIFFERENZE.md` alla mano.
 - Semplificata e forfettaria in Full: bozza in revisione.
-- Elenco ABI in `00-config.js`: parziale e da verificare.
+- Elenco banche e sportelli: fonte non ufficiale (abicab.nicogis.it, dati di
+  gennaio 2024), con nomi in parte superati. Da sostituire con l'archivio ufficiale.
+- Numero del preventivo: data e ora di creazione, non un progressivo comune.
+- Validità proposta: 30 giorni (`VALIDITA_GIORNI`), da confermare.

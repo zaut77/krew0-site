@@ -40,10 +40,12 @@ function renderPmi() {
 
   // foglio del preventivo
   const nome = $('#pmi-nome').value.trim(), prep = $('#pmi-prep').value.trim();
+  const numero = $('#pmi-num').value.trim(), valido = $('#pmi-val').value.trim();
+  $('#pmi-val').classList.toggle('bad', !!valido && !!vDate(valido));
   Q.pmi = {
-    file: 'Preventivo Yuxme PMI' + (nome ? ' - ' + nome : ''), blocked: r.sotto, data: today(),
-    meta: [['Cliente', nome || 'Da indicare'], ['Servizio', 'Contabilità PMI'], ['Regime contabile', r.nome], ['Documenti all\'anno', int(r.docs)]]
-      .concat(prep ? [['Preparato da', prep]] : []),
+    file: 'Preventivo Yuxme PMI' + (nome ? ' - ' + nome : ''), blocked: r.sotto, data: today(), footer: piede(numero, prep, valido),
+    meta: metaNumero(numero, valido).concat([['Cliente', nome || 'Da indicare'], ['Servizio', 'Contabilità PMI'], ['Regime contabile', r.nome], ['Documenti all\'anno', int(r.docs)]],
+      prep ? [['Preparato da', prep]] : []),
     cols: [{ t: 'Voce' }, { t: 'Dettaglio' }, { t: 'Importo annuo', r: 1 }],
     rows: [['Canone annuo', `${r.nome}, fino a ${int(r.soglia)} documenti`, eur(r.appl)]]
       .concat(r.oltre ? [['Eccedenza stimata, a consuntivo', `${int(r.oltre)} documenti × ${eur(L.ecc)}`, eur(r.ecc)]] : []),

@@ -101,10 +101,12 @@ function updateStudio() {
 
   // foglio del preventivo: una riga per tipo di cliente
   const nome = $('#st-nome').value.trim(), prep = $('#st-prep').value.trim();
+  const numero = $('#st-num').value.trim(), valido = $('#st-val').value.trim();
+  $('#st-val').classList.toggle('bad', !!valido && !!vDate(valido));
   Q.st = {
-    file: 'Preventivo Yuxme' + (nome ? ' - ' + nome : ''), blocked: r.sotto > 0 || !r.n, data: today(),
-    meta: [['Studio', nome || 'Da indicare'], ['Clienti', `${r.n} (${r.cnt.light} Light, ${r.cnt.plus} Light Plus, ${r.cnt.full} Full Assistance)`]]
-      .concat(r.nL ? [['Fascia Light', `${f.label}: ${dec(f.prezzo)} € per riga`]] : [], prep ? [['Preparato da', prep]] : []),
+    file: 'Preventivo Yuxme' + (nome ? ' - ' + nome : ''), blocked: r.sotto > 0 || !r.n, data: today(), footer: piede(numero, prep, valido),
+    meta: metaNumero(numero, valido).concat([['Studio', nome || 'Da indicare'], ['Clienti', `${r.n} (${r.cnt.light} Light, ${r.cnt.plus} Light Plus, ${r.cnt.full} Full Assistance)`]],
+      r.nL ? [['Fascia Light', `${f.label}: ${dec(f.prezzo)} € per riga`]] : [], prep ? [['Preparato da', prep]] : []),
     cols: [{ t: 'Clienti', r: 1 }, { t: 'Tipo di cliente' }, { t: 'Servizio' }, { t: 'Documenti/anno per cliente', r: 1 }, { t: 'Importo annuo per cliente', r: 1 }, { t: 'Totale annuo', r: 1 }],
     rows: r.rows.filter(x => x.q).map(x => [String(x.q), TIPI[x.c.tipo], SERVIZI[x.c.serv], int(x.c.docs), eur(x.appl), eur(x.appl * x.q)]),
     totals: [['Totale', eur(r.app)]].concat(
@@ -117,6 +119,7 @@ function updateStudio() {
       r.promo ? ['I mesi agevolati del Light Plus valgono sul primo anno.'] : [], r.sc ? ['Lo sconto si applica ai soli clienti in Light Plus.'] : []),
   };
   renderSheet('st-sheet', Q.st);
+  aggiornaRigheIncolla();
   contractStudio(r, scPct, promoLab);
   syncOutput('st');
 }
@@ -191,4 +194,27 @@ $('#st-body').addEventListener('click', e => {
 });
 $('#st-gen').addEventListener('click', genera);
 $('#st-add').addEventListener('click', () => { S.clients.push(nuovaRiga('op', 'light', 1, 500)); renderClients(); });
-['st-sc', 'st-pm', 'st-pp', 'st-nome', 'st-prep', 'st-mail'].forEach(id => $('#' + id).addEventListener('input', updateStudio));
+['st-sc', 'st-pm', 'st-pp', 'st-nome', 'st-prep', 'st-mail', 'st-num', 'st-val'].forEach(id => $('#' + id).addEventListener('input', updateStudio));
+
+/* ---- elenco clienti incollato da Excel ----
+ * Riempie le schede dei clienti (units) di una riga del preventivo, così i
+ * moduli d'ordine del contratto non vanno compilati a mano. */
+
+/** Tiene allineata la tendina delle righe con il preventivo. */
+function aggiornaRigheIncolla() {
+  const sel = $('#st-paste-row'), scelta = sel.value;
+  sel.innerHTML = S.clients.filter(c => c.n > 0).map(c => `<option value="${c.id}">${c.n} × ${TIPI[c.tipo]} – ${SERVIZI[c.serv]}</option>`).join('');
+  if ([...sel.options].some(o => o.value === scelta)) sel.value = scelta;
+}
+
+$('#st-paste-go').addEventListener('click', () => {
+  const riga = S.clients.find(c => c.id == $('#st-paste-row').value), msg = $('#st-paste-msg');
+  // Excel separa le colonne con tabulazioni; si accetta anche il punto e virgola
+  const righe = $('#st-paste').value.split(/\r?\n/).map(l => l.split(/\t|;/).map(v => v.trim())).filter(v => v.some(Boolean));
+  if (!riga || !righe.length) { msg.textContent = 'Incolla almeno una riga e scegli dove inserirla.'; return; }
+  righe.slice(0, riga.n).forEach((v, i) => { riga.units[i] = { nome: v[0] || '', rl: v[1] || '', pi: normVal('piva', v[2] || ''), per: v[3] || '' }; });
+  const scartate = Math.max(0, righe.length - riga.n);
+  msg.textContent = `Inseriti ${Math.min(righe.length, riga.n)} clienti.` + (scartate ? ` ${scartate} in più ignorati: la riga ne prevede ${riga.n}.` : '');
+  $('#st-paste').value = '';
+  updateStudio();
+});
