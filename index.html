@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<style>html,body{margin:0}body{font:14px system-ui,sans-serif}img{max-width:100%}</style>
+</head>
+<body>
+<title>Preventivatore Yuxme</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: barra in alto con logo, una vista per volta; ogni preventivatore = dati, conto, foglio del preventivo. */
+:root{
+  --bg:#F6F7F2; --surface:#FFFFFF; --ink:#3F403D; --head:#251B53; --muted:#6B6D66; --line:#E2E3DE;
+  --accent:#251B53; --accent-ink:#FFFFFF; --accent-soft:#E1F4F6; --teal:#14818E; --band-ink:#FFFFFF; --band-on:#5FD3DE; --band-on-ink:#1D1934;
+  --ok:#17794A; --ok-soft:#E0F3E8; --warn:#8A5200; --warn-soft:#FDF0D5; --bad:#B3261E; --bad-soft:#FBE4E2;
+  --display:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:14px;
+  /* il foglio del preventivo è un documento: resta chiaro in entrambi i temi */
+  --paper:#FFFFFF; --paper-ink:#3F403D; --paper-muted:#6B6D66; --paper-line:#E2E3DE; --paper-accent:#251B53; --paper-soft:#E1F4F6;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#15122B; --surface:#1F1A3D; --ink:#E4E1F2; --head:#FFFFFF; --muted:#A9A4C8; --line:#352D60;
+  --accent:#5FD3DE; --accent-ink:#1D1934; --accent-soft:#1B3A4B; --teal:#5FD3DE;
+  --ok:#5FD39A; --ok-soft:#12301F; --warn:#F2B950; --warn-soft:#3A2B0A; --bad:#FF8A80; --bad-soft:#40181A; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#15122B; --surface:#1F1A3D; --ink:#E4E1F2; --head:#FFFFFF; --muted:#A9A4C8; --line:#352D60;
+  --accent:#5FD3DE; --accent-ink:#1D1934; --accent-soft:#1B3A4B; --teal:#5FD3DE;
+  --ok:#5FD39A; --ok-soft:#12301F; --warn:#F2B950; --warn-soft:#3A2B0A; --bad:#FF8A80; --bad-soft:#40181A; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{background:linear-gradient(110deg,#1D1934 0%,#281E57 55%,#4C3F83 100%);color:var(--band-ink);border-bottom:4px solid transparent;border-image:linear-gradient(90deg,#4C4084,#346D97,#50A4BA) 1}
+header.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 28px;padding-block:14px}
+.brand{display:flex;align-items:center;gap:12px;color:var(--band-ink);text-decoration:none;font-family:var(--display);font-weight:700;font-size:20px}
+.brand img{height:34px;width:auto;display:block}
+.brand small{font-family:var(--body);font-weight:500;font-size:13px;opacity:.75;border-left:1px solid currentColor;padding-left:12px}
+nav{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}
+nav a{padding:7px 14px;border-radius:999px;color:var(--band-ink);opacity:.75;text-decoration:none;font-weight:500;font-size:14px}
+nav a:hover{opacity:1}
+nav a.on{background:var(--band-on);color:var(--band-on-ink);opacity:1;font-weight:600}
+main.wrap{padding-block:32px 64px}
+.view{display:flex;flex-direction:column;gap:20px}
+h1{font-family:var(--display);font-weight:800;color:var(--head);font-size:clamp(28px,4.4vw,40px);line-height:1.1;margin:0;letter-spacing:-.03em;text-wrap:balance}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+h2{font-family:var(--display);font-weight:700;color:var(--head);font-size:18px;margin:0;letter-spacing:-.015em}
+p{margin:0}
+.lead{color:var(--muted);max-width:65ch;font-size:16px}
+.card{background:var(--surface);box-shadow:0 6px 24px rgba(37,27,83,.06);border:1px solid var(--line);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.cols{grid-template-columns:minmax(0,1fr)}}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.choice{background:var(--surface);box-shadow:0 6px 24px rgba(37,27,83,.06);border:1px solid var(--line);border-radius:var(--r);padding:26px;text-decoration:none;color:var(--ink);display:flex;flex-direction:column;gap:10px}
+.choice:hover{border-color:var(--accent)}
+.choice b{font-family:var(--display);font-weight:800;color:var(--head);letter-spacing:-.02em;font-size:24px}
+.choice small{color:var(--muted);font-size:14.5px}
+.choice em{font-style:normal;align-self:flex-start;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:14px;margin-top:8px;padding:9px 16px;border-radius:999px}
+.minor{color:var(--muted);font-size:14px}
+.minor a{color:var(--teal);font-weight:600}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:500;color:var(--muted);min-width:0}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0;font-variant-numeric:tabular-nums}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--bg);color:var(--muted);padding:9px 10px;font:inherit;font-weight:500;cursor:pointer}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink)}
+.check input{width:18px;height:18px;flex:none}
+button.btn{font:inherit;font-weight:600;border-radius:999px;padding:10px 18px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+button.btn.ghost{background:transparent;color:var(--accent)}
+button.btn:disabled{opacity:.45;cursor:not-allowed}
+button.ico{border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:6px}
+button.ico:hover{color:var(--bad)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.sum{display:flex;flex-direction:column;gap:8px;font-variant-numeric:tabular-nums}
+.sum div{display:flex;justify-content:space-between;gap:16px}
+.sum div span:first-child{color:var(--muted)}
+.sum .tot{border-top:1px solid var(--line);padding-top:12px;margin-top:4px;font-family:var(--display);color:var(--head);font-size:26px;font-weight:800;letter-spacing:-.02em;align-items:baseline}
+.sum .tot span:first-child{font-family:var(--body);font-size:14px;font-weight:500}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.info{background:var(--accent-soft);color:var(--teal)}
+.notes{display:flex;flex-direction:column;gap:8px;font-size:13.5px}
+.notes p{padding:8px 12px;border-radius:8px}
+.notes .warn{background:var(--warn-soft);color:var(--warn)} .notes .bad{background:var(--bad-soft);color:var(--bad)} .notes .ok{background:var(--ok-soft);color:var(--ok)}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;max-height:520px;overflow-y:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+.scroll th{position:sticky;top:0;background:var(--surface);z-index:1}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+td input,td select{padding:6px 8px}
+td .w-name{min-width:130px} td .w-sel{min-width:150px} td .w-num{width:92px;text-align:right}
+.tiers{display:flex;flex-wrap:wrap;gap:6px}
+.tiers span{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tiers span.on{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:600}
+.hint{font-size:12.5px;color:var(--muted)}
+.comp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.6fr) minmax(0,.8fr) minmax(0,1.6fr);gap:8px 10px;align-items:center}
+.comp .h{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+@media (max-width:640px){.comp{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.comp .h{display:none}.comp .t{grid-column:1/-1;font-weight:600;margin-top:8px}.comp .e{grid-column:1/-1}}
+.ro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;font-size:14px;font-variant-numeric:tabular-nums}
+.ro span:nth-child(odd){color:var(--muted)} .ro span:nth-child(even){font-weight:600;text-align:right}
+
+/* foglio del preventivo */
+.sheetbox{display:flex;flex-direction:column;gap:14px}
+.sheetscroll{overflow-x:auto}
+.sheet{background:var(--paper);color:var(--paper-ink);border:1px solid var(--paper-line);border-radius:6px;max-width:794px;margin:0 auto;padding:clamp(20px,5vw,48px);display:flex;flex-direction:column;gap:22px;font-size:13.5px;box-shadow:0 10px 30px rgba(10,20,50,.10)}
+.sheet .sh-top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;border-bottom:3px solid;border-image:linear-gradient(90deg,#4C4084,#346D97,#50A4BA) 1;padding-bottom:16px}
+.sheet .sh-top img{height:38px;width:auto}
+.sheet .sh-top .wm{font-family:var(--display);font-weight:700;font-size:26px;color:var(--paper-accent)}
+.sheet .sh-top div{text-align:right;color:var(--paper-muted)}
+.sheet .sh-top b{display:block;font-family:var(--display);font-weight:800;letter-spacing:-.02em;font-size:22px;color:var(--paper-accent)}
+.sheet .sh-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px 24px}
+.sheet .sh-meta span{display:block;color:#14818E;font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+.sheet table{font-size:12.5px}
+.sheet th{background:var(--paper-accent);color:#fff;border:0;padding:8px}
+.sheet td{border-bottom:1px solid var(--paper-line);padding:7px 8px;white-space:normal}
+.sheet .sh-tot{align-self:flex-end;width:min(100%,340px);display:flex;flex-direction:column;gap:6px;font-variant-numeric:tabular-nums}
+.sheet .sh-tot div{display:flex;justify-content:space-between;gap:16px}
+.sheet .sh-tot div span:first-child{color:var(--paper-muted)}
+.sheet .sh-tot .big{background:var(--paper-soft);color:var(--paper-accent);border-radius:8px;padding:10px 12px;font-family:var(--display);font-weight:800;font-size:18px;margin-block:4px}
+.sheet .sh-tot .big span:first-child{color:var(--paper-accent);font-family:var(--body);font-size:13px;font-weight:600}
+.sheet .sh-notes{color:var(--paper-muted);font-size:11.5px;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--paper-line);padding-top:12px}
+.sheetbox>*{min-width:0;max-width:100%}
+.contract{width:100%;overflow-x:hidden;overflow-wrap:anywhere;background:var(--paper);color:var(--paper-ink);border:1px solid var(--paper-line);border-radius:6px;max-width:794px;margin:0 auto;padding:clamp(18px,5vw,44px);font-size:12.5px;line-height:1.55;max-height:720px;overflow-y:auto;box-shadow:0 10px 30px rgba(10,20,50,.10)}
+.contract .sh-top{border-bottom:3px solid;border-image:linear-gradient(90deg,#4C4084,#346D97,#50A4BA) 1;padding-bottom:14px;margin-bottom:18px}
+.contract .sh-top img{height:34px;width:auto;display:block}
+.contract h3{font-family:var(--display);font-weight:800;font-size:15px;color:var(--paper-accent);text-align:center;margin:18px 0 10px;text-wrap:balance}
+.contract h4{font-family:var(--display);font-weight:700;font-size:13px;color:var(--paper-accent);margin:16px 0 6px}
+.contract p{margin:0 0 8px}
+.contract p.k-c{text-align:center;font-weight:700;margin:12px 0}
+.contract li{margin:0 0 4px 18px}
+.contract hr{border:0;border-top:1px dashed var(--paper-line);margin:28px 0}
+.contract table{font-size:11.5px;margin:6px 0 12px}
+.contract th{background:var(--paper-accent);color:#fff;border:0;padding:6px}
+.contract td{border-bottom:1px solid var(--paper-line);padding:4px 6px;white-space:normal}
+.fld{display:inline-block;min-width:44px;padding:0 5px;border-radius:4px;background:#E1F4F6;border-bottom:1.5px solid #1D9BAA;color:#251B53;font-weight:600;outline-offset:1px;vertical-align:baseline}
+.fld:empty::before{content:attr(data-ph);color:#6B6D66;font-weight:400;font-style:italic}
+.chk{cursor:pointer;font-size:16px;line-height:1;color:#251B53;padding:0 2px;border-radius:3px}
+.demo{background:linear-gradient(120deg,#1D1934,#281E57 60%,#4C3F83);border-radius:var(--r);padding:clamp(16px,3vw,28px);color:#fff;display:flex;flex-direction:column;gap:16px}
+.demo-cap{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.demo-cap b{font-family:var(--display);font-weight:800;font-size:clamp(18px,3vw,24px);letter-spacing:-.02em}
+.demo-cap span{color:#5FD3DE;font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase}
+.demo-stage{background:#F6F7F2;color:#3F403D;border-radius:10px;padding:18px;min-height:210px;display:flex;flex-direction:column;gap:12px;justify-content:center}
+.demo-stage>*{animation:mkin .45s ease both}
+@keyframes mkin{from{opacity:.0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.mk-row{display:flex;gap:12px;flex-wrap:wrap}
+.mk-card{flex:1 1 140px;background:#fff;border:2px solid #E2E3DE;border-radius:10px;padding:16px;font-family:var(--display);font-weight:800;color:#251B53;font-size:18px}
+.mk-card.hot{border-color:#1D9BAA;box-shadow:0 0 0 4px #E1F4F6}
+.mk-f{flex:1 1 130px;display:flex;flex-direction:column;gap:4px;font-size:12px;color:#6B6D66;font-weight:500}
+.mk-f i{font-style:normal;display:block;background:#fff;border:1.5px solid #E2E3DE;border-radius:8px;padding:8px 10px;min-height:38px;font-size:15px;color:#251B53;font-weight:600;font-variant-numeric:tabular-nums}
+.mk-f i.hot{border-color:#1D9BAA;background:#E1F4F6}
+.mk-tot{display:flex;justify-content:space-between;align-items:baseline;gap:12px;background:#fff;border-radius:10px;padding:14px 16px;font-size:13px;color:#6B6D66}
+.mk-tot b{font-family:var(--display);font-weight:800;font-size:26px;color:#251B53;font-variant-numeric:tabular-nums}
+.mk-btn{align-self:flex-start;background:#251B53;color:#fff;border-radius:999px;padding:10px 18px;font-weight:600;font-size:14px;animation:mkpulse 1.2s ease-in-out infinite}
+@keyframes mkpulse{50%{box-shadow:0 0 0 8px rgba(29,155,170,.25)}}
+.mk-pdf{align-self:flex-start;background:#fff;border:1.5px solid #E2E3DE;border-radius:8px;padding:10px 14px;font-weight:600;color:#251B53;font-size:13px;animation:mkin .5s .9s ease both}
+.mk-pill{align-self:flex-start;background:#E1F4F6;color:#14818E;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+.demo-ctl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.demo-ctl button{font:inherit;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:999px;padding:6px 14px;font-weight:600;cursor:pointer;font-size:13px}
+.demo-dots{display:flex;gap:6px}
+.demo-dots button{width:26px;height:8px;padding:0;border-radius:999px;border:0;background:rgba(255,255,255,.28)}
+.demo-dots button.on{background:#5FD3DE}
+@media (prefers-reduced-motion:reduce){.demo-stage>*,.mk-btn,.mk-pdf{animation:none}}
+.steps{display:flex;flex-direction:column;gap:10px;margin:0;padding-left:22px}
+.steps li{padding-left:4px}
+.steps b{color:var(--head)}
+</style>
+
+<header class="top"><div class="wrap">
+  <a class="brand" href="#home"><span id="brandmark">Yuxme</span></a>
+  <nav id="nav">
+    <a href="#home" data-v="home">Home</a>
+    <a href="#pmi" data-v="pmi">PMI</a>
+    <a href="#commercialisti" data-v="commercialisti">Commercialisti</a>
+    <a href="#guida" data-v="guida">Guida</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+
+<!-- HOME -->
+<section id="v-home" class="view">
+  <span class="eyebrow">Preventivatore</span>
+  <h1>Che preventivo ti serve?</h1>
+  <p class="lead">Scegli il canale, inserisci pochi numeri e scarica il preventivo già impaginato.</p>
+  <div class="choices">
+    <a class="choice" href="#pmi"><b>PMI</b><small>Regime contabile e numero di fatture: ottieni canone annuo, eccedenza stimata e totale.</small><em>Preventivo PMI</em></a>
+    <a class="choice" href="#commercialisti"><b>Commercialisti</b><small>Parti da quanti clienti ha lo studio e da cosa vuole delegare: ottieni un prezzo per cliente, con sconti e totale.</small><em>Preventivo studio</em></a>
+  </div>
+  <p class="minor">Prima volta? <a href="#guida">Guarda la guida animata</a>. I prezzi di listino sono fissi: <a href="#listino">consulta listino e regole</a>.</p>
+</section>
+
+<!-- PMI -->
+<section id="v-pmi" class="view" hidden>
+  <h1>Preventivo PMI</h1>
+  <div class="cols">
+    <div class="card">
+      <h2>Dati dell'azienda</h2>
+      <div class="grid2">
+        <label class="f">Ragione sociale<input id="pmi-nome" type="text" placeholder="Es. Rossi Srl"></label>
+        <label class="f">Preparato da<input id="pmi-prep" type="text" placeholder="Nome e cognome"></label>
+      </div>
+      <label class="f">Regime contabile
+        <div class="seg" id="pmi-reg"><button type="button" data-r="ord" class="on">Ordinaria</button><button type="button" data-r="sem">Semplificata</button></div></label>
+      <div class="grid2">
+        <label class="f">Fatture attive all'anno<input id="pmi-att" type="number" min="0" inputmode="numeric" value="320"></label>
+        <label class="f">Fatture passive e ricevute all'anno<input id="pmi-pas" type="number" min="0" inputmode="numeric" value="410"></label>
+      </div>
+      <label class="check"><input id="pmi-corr" type="checkbox"><span>Ha corrispettivi (12 documenti l'anno in più)</span></label>
+      <div class="grid2">
+        <label class="f">Prezzo proposto, dal minimo in su<input id="pmi-ov" type="number" min="0" step="0.01" inputmode="decimal"></label>
+      </div>
+      <p class="hint">I numeri già inseriti sono un esempio: sostituiscili. Prezzo proposto vuoto = minimo di listino. Il prezzo si può solo alzare.</p>
+    </div>
+    <div class="card">
+      <h2>Conto</h2>
+      <div><span class="pill info" id="pmi-fascia"></span></div>
+      <div class="sum" id="pmi-sum"></div>
+      <div class="notes" id="pmi-notes"></div>
+    </div>
+  </div>
+  <div class="card sheetbox">
+    <div class="row" style="justify-content:space-between"><h2>Preventivo per il cliente</h2><button class="btn" type="button" data-pdf="pmi">Scarica il PDF</button></div>
+    <p class="hint" data-pdfmsg="pmi" hidden></p>
+    <div class="sheetscroll"><div class="sheet" id="pmi-sheet"></div></div>
+  </div>
+  <div class="card sheetbox">
+    <div class="row" style="justify-content:space-between"><h2>Contratto PMI</h2><button class="btn" type="button" data-pdf="pmi-c">Scarica il contratto in PDF</button></div>
+    <p class="hint">Canone mensile, soglia e ragione sociale arrivano dal preventivo qui sopra. I campi evidenziati si compilano e si correggono scrivendoci dentro; le caselle si spuntano con un clic.</p>
+    <p class="hint" data-pdfmsg="pmi-c" hidden></p>
+    <div class="contract" id="pmi-contract"></div>
+  </div>
+</section>
+
+<!-- COMMERCIALISTI -->
+<section id="v-commercialisti" class="view" hidden>
+  <h1>Preventivo studio commercialista</h1>
+  <div class="card">
+    <h2>1. Com'è composto lo studio e cosa vuole delegare</h2>
+    <div class="grid2" style="max-width:640px">
+      <label class="f">Nome dello studio<input id="st-nome" type="text" placeholder="Es. Studio Bianchi"></label>
+      <label class="f">Preparato da<input id="st-prep" type="text" placeholder="Nome e cognome"></label>
+    </div>
+    <div class="comp" id="comp">
+      <span class="h">Tipo di cliente</span><span class="h">Quanti</span><span class="h">Documenti/anno (media)</span><span class="h">Esigenza dello studio</span>
+    </div>
+    <div class="row">
+      <button class="btn" type="button" id="st-gen">Crea l'elenco clienti</button>
+      <button class="btn ghost" type="button" id="st-add">Aggiungi un cliente</button>
+      <span class="hint">"Crea" sostituisce l'elenco qui sotto. I numeri già inseriti sono un esempio.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>2. Prezzo per cliente</h2>
+    <p class="hint">Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate, × 1 per le forfettarie. L'importo si può alzare sopra il listino; campo vuoto = listino.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>#</th><th>Cliente</th><th>Tipo</th><th>Esigenza</th><th class="num">Documenti</th><th class="num">Righe stimate</th><th class="num">Listino</th><th class="num">Importo applicato</th><th>Controllo</th><th></th></tr></thead>
+      <tbody id="st-body"></tbody>
+    </table></div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>Fascia Light</h2>
+      <p id="st-fascia-txt"></p>
+      <div class="tiers" id="st-tiers"></div>
+      <p class="hint">Lo sconto di fascia vale sull'intero cumulo di licenze Light e Light Plus: al salto di fascia si ricalcola tutto. Il canone fisso per ditta non è scontato.</p>
+      <div class="notes" id="st-notes"></div>
+    </div>
+    <div class="card">
+      <h2>3. Sconti Light Plus e totale</h2>
+      <div class="grid2">
+        <label class="f">Light Plus: mesi di avvio agevolati<select id="st-pm"><option value="0">Nessuno</option><option value="1">1 mese</option><option value="2">2 mesi</option><option value="3">3 mesi</option></select></label>
+        <label class="f">Agevolazione su quei mesi<select id="st-pp"><option value="50">Al 50%</option><option value="100">Gratuiti</option></select></label>
+        <label class="f">Light Plus: sconto %<input id="st-sc" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="0"></label>
+      </div>
+      <div class="sum" id="st-sum"></div>
+    </div>
+  </div>
+  <div class="card sheetbox">
+    <div class="row" style="justify-content:space-between"><h2>Preventivo per lo studio</h2><button class="btn" type="button" data-pdf="st">Scarica il PDF</button></div>
+    <p class="hint" data-pdfmsg="st" hidden></p>
+    <div class="sheetscroll"><div class="sheet" id="st-sheet"></div></div>
+  </div>
+  <div class="card sheetbox">
+    <div class="row" style="justify-content:space-between"><h2>Contratto studio</h2><button class="btn" type="button" data-pdf="st-c">Scarica il contratto in PDF</button></div>
+    <p class="hint">Prezzi, sconti ed elenco clienti dei moduli d'ordine arrivano dal preventivo qui sopra. I campi evidenziati si compilano e si correggono scrivendoci dentro; le caselle si spuntano con un clic.</p>
+    <p class="hint" data-pdfmsg="st-c" hidden></p>
+    <div class="contract" id="st-contract"></div>
+  </div>
+</section>
+
+<!-- GUIDA -->
+<section id="v-guida" class="view" hidden>
+  <span class="eyebrow">Guida</span>
+  <h1>Dal numero di fatture al contratto, in sei passaggi</h1>
+  <div class="demo" id="demo">
+    <div class="demo-cap"><span id="demo-n"></span><b id="demo-t"></b></div>
+    <div class="demo-stage" id="demo-stage" aria-live="off"></div>
+    <div class="demo-ctl"><button type="button" id="demo-pp">Pausa</button><div class="demo-dots" id="demo-dots"></div></div>
+  </div>
+  <div class="cols">
+    <div class="card"><h2>Preventivo PMI</h2><ol class="steps">
+      <li><b>Apri PMI</b> dalla home o dalla barra in alto.</li>
+      <li><b>Scrivi ragione sociale e il tuo nome</b>: finiscono sul preventivo.</li>
+      <li><b>Scegli il regime</b> (ordinaria o semplificata) e inserisci <b>fatture attive e passive</b> dell'anno. Spunta i corrispettivi se ci sono.</li>
+      <li><b>Leggi il conto</b>: fascia, minimo di listino, eccedenza stimata e totale con IVA.</li>
+      <li><b>Prezzo proposto</b>: lascialo vuoto per il minimo, oppure scrivi un importo più alto. Sotto il minimo il PDF non si scarica.</li>
+      <li><b>Scarica il PDF</b> del preventivo.</li>
+      <li><b>Contratto PMI</b>: canone mensile e soglia sono già compilati. Completa i campi evidenziati scrivendoci dentro, spunta le prestazioni extra e scarica il contratto.</li>
+    </ol></div>
+    <div class="card"><h2>Preventivo studio commercialista</h2><ol class="steps">
+      <li><b>Apri Commercialisti</b>.</li>
+      <li><b>Componi lo studio</b>: per ogni tipo di cliente indica quanti sono, i documenti medi all'anno e l'esigenza (Light, Light Plus o Full).</li>
+      <li><b>Crea l'elenco clienti</b>: esce una riga per cliente. Puoi rinominarla, cambiare tipo, esigenza e documenti, toglierla o aggiungerne altre.</li>
+      <li><b>Importo applicato</b>: vuoto vale il listino; puoi alzarlo. Il controllo a destra segnala se sei sotto o sopra.</li>
+      <li><b>Fascia Light</b>: si aggiorna da sola in base al numero di licenze Light e Light Plus.</li>
+      <li><b>Sconti</b>: esistono solo per il Light Plus. Scegli lo sconto % e 1, 2 o 3 mesi al 50% o gratuiti.</li>
+      <li><b>Scarica il PDF</b> del preventivo.</li>
+      <li><b>Contratto studio</b>: prezzi, condizioni particolari e moduli d'ordine con l'elenco clienti sono già compilati. Completa i campi evidenziati e scarica il contratto.</li>
+    </ol></div>
+  </div>
+</section>
+
+<!-- LISTINO (sola lettura) -->
+<section id="v-listino" class="view" hidden>
+  <h1>Listino e regole</h1>
+  <p class="lead">Valori fissi, uguali per tutti. Importi annui, IVA esclusa.</p>
+  <div class="cols">
+    <div class="card"><h2>PMI</h2><div class="ro" id="l-pmi"></div></div>
+    <div class="card"><h2>Studi: Full Assistance</h2><div class="ro" id="l-full"></div></div>
+    <div class="card"><h2>Studi: Light e Light Plus</h2><div class="ro" id="l-light"></div></div>
+    <div class="card"><h2>Fasce Light per numero di licenze</h2><div class="ro" id="l-fasce"></div></div>
+  </div>
+</section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+/*BRAND*/
+const LOGO_HEADER='data:image/png;base64,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';
+const LOGO_PAPER='data:image/png;base64,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';
+const LOGO_RATIO=494/138;
+const PDF_ACCENT=[37,27,83], PDF_SOFT=[225,244,246], PDF_INK=[63,64,61], PDF_MUTED=[107,109,102], PDF_TEAL=[29,155,170];
+/*/BRAND*/
+
+const P=Object.freeze({iva:22,
+  pmi:{ord1:2900,ord1Max:500,ord2:3300,ord2Max:1500,sem:2000,semMax:500,ecc:1.5,corr:12},
+  light:{fisso:600,riga:0.30,mOrd:6,mSem:3,mForf:1,fasce:[[10,0],[20,10],[30,20],[50,30],[100,40],[null,50]]},
+  full:{op:2700,hold:1600,sem:1600,forf:200,inclusi:1500,ecc:1.5}});
+
+const $=s=>document.querySelector(s);
+const eur=n=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',useGrouping:'always'}).format(n||0);
+const int=n=>new Intl.NumberFormat('it-IT',{useGrouping:'always'}).format(Math.round(n||0));
+const dec=n=>new Intl.NumberFormat('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:'always'}).format(n);
+const pct=n=>new Intl.NumberFormat('it-IT',{maximumFractionDigits:1}).format(n)+'%';
+const num=v=>{const x=parseFloat(String(v).replace(',','.'));return isFinite(x)?x:0};
+const clampPct=v=>Math.min(100,Math.max(0,num(v)));
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const today=()=>new Date().toLocaleDateString('it-IT');
+const TIPI={op:'Ordinaria operativa',hold:'Ordinaria holding',sem:'Semplificata',forf:'Forfettaria'};
+const SERV={light:'Light',plus:'Light Plus',full:'Full Assistance'};
+const ESIG={light:'Lo studio tiene controllo e validazione (Light)',plus:'Come il Light, con connettori da attivare (Light Plus)',full:'Delega completa, responsabilità a Yuxme (Full)'};
+const opts=(o,sel)=>Object.entries(o).map(([k,v])=>`<option value="${k}"${k===sel?' selected':''}>${v}</option>`).join('');
+
+/* ---------- calcoli ---------- */
+function fascia(n){
+  const f=P.light.fasce; let idx=f.findIndex(x=>x[0]==null||n<=x[0]); if(idx<0)idx=f.length-1;
+  const from=idx?f[idx-1][0]+1:1, to=f[idx][0];
+  return {idx,label:to==null?`oltre ${from-1} licenze`:`${from}–${to} licenze`,prezzo:P.light.riga*(1-f[idx][1]/100)};
+}
+const mult=t=>t==='sem'?P.light.mSem:t==='forf'?P.light.mForf:P.light.mOrd;
+function prezzoCliente(c,pr){
+  if(c.serv==='full')return {righe:null,listino:P.full[c.tipo]+Math.max(0,c.docs-P.full.inclusi)*P.full.ecc};
+  const righe=c.docs*mult(c.tipo);
+  return {righe,listino:P.light.fisso+righe*pr};
+}
+function calcPmi(d){
+  const docs=d.att+d.pas+(d.corr?P.pmi.corr:0); let base,soglia,nome;
+  if(d.reg==='sem'){base=P.pmi.sem;soglia=P.pmi.semMax;nome='Semplificata'}
+  else if(docs<=P.pmi.ord1Max){base=P.pmi.ord1;soglia=P.pmi.ord1Max;nome='Ordinaria'}
+  else{base=P.pmi.ord2;soglia=P.pmi.ord2Max;nome='Ordinaria'}
+  const ecc=Math.max(0,docs-soglia)*P.pmi.ecc, appl=d.ov==null?base:d.ov, sc=appl*d.sc/100, netto=appl-sc;
+  const imp=netto+ecc, iva=imp*P.iva/100;
+  return {docs,base,soglia,nome,ecc,appl,sc,netto,imp,iva,tot:imp+iva,sotto:appl<base-0.005};
+}
+function calcStudio(clients,scPct,mesi,promoPct){
+  const nL=clients.filter(c=>c.serv!=='full').length, f=fascia(nL);
+  let lis=0,app=0,plusApp=0,sotto=0; const cnt={light:0,plus:0,full:0};
+  const rows=clients.map(c=>{const r=prezzoCliente(c,f.prezzo), a=c.ov==null?r.listino:c.ov, d=a-r.listino;
+    lis+=r.listino; app+=a; cnt[c.serv]++; if(c.serv==='plus')plusApp+=a; if(d<-0.005)sotto++;
+    return {c,righe:r.righe,listino:r.listino,appl:a,delta:d}});
+  const sc=plusApp*scPct/100, regime=app-sc;
+  const promo=plusApp*(1-scPct/100)/12*mesi*promoPct/100, primo=regime-promo, iva=primo*P.iva/100;
+  return {nL,f,rows,lis,app,cnt,sotto,sc,regime,promo,primo,iva,tot:primo+iva};
+}
+
+/* ---------- foglio del preventivo (anteprima e PDF dallo stesso modello) ---------- */
+const Q={};
+function renderSheet(id,q){
+  $('#'+id).innerHTML=`
+    <div class="sh-top">${LOGO_PAPER?`<img src="${LOGO_PAPER}" alt="Yuxme">`:'<span class="wm">Yuxme</span>'}<div><b>Preventivo</b>${esc(q.data)}</div></div>
+    <div class="sh-meta">${q.meta.map(m=>`<div><span>${esc(m[0])}</span>${esc(m[1])}</div>`).join('')}</div>
+    <table><thead><tr>${q.cols.map(c=>`<th${c.r?' class="num"':''}>${esc(c.t)}</th>`).join('')}</tr></thead>
+      <tbody>${q.rows.map(r=>`<tr>${r.map((v,i)=>`<td${q.cols[i].r?' class="num"':''}>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <div class="sh-tot">${q.totals.map(t=>`<div${t[2]?' class="big"':''}><span>${esc(t[0])}</span><span>${esc(t[1])}</span></div>`).join('')}</div>
+    <div class="sh-notes">${q.notes.map(n=>`<p>${esc(n)}</p>`).join('')}</div>`;
+}
+const pdfTxt=s=>String(s).replace(/−/g,'-').replace(/[  ]/g,' ').replace(/→/g,'>');
+function makePdf(q){
+  const {jsPDF}=window.jspdf, doc=new jsPDF({unit:'mm',format:'a4'}), M=16, W=210;
+  if(LOGO_PAPER)doc.addImage(LOGO_PAPER,'PNG',M,14,11*LOGO_RATIO,11);
+  else{doc.setFont('helvetica','bold');doc.setFontSize(22);doc.setTextColor(...PDF_ACCENT);doc.text('Yuxme',M,23)}
+  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(...PDF_ACCENT);doc.text('Preventivo',W-M,19,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(...PDF_MUTED);doc.text(pdfTxt(q.data),W-M,25,{align:'right'});
+  doc.setDrawColor(...PDF_TEAL);doc.setLineWidth(.8);doc.line(M,31,W-M,31);
+  let y=40; const colW=(W-2*M)/2;
+  q.meta.forEach((m,i)=>{const x=M+(i%2)*colW; if(i&&i%2===0)y+=12;
+    doc.setFont('helvetica','bold');doc.setFontSize(7.5);doc.setTextColor(...PDF_TEAL);doc.text(pdfTxt(m[0]).toUpperCase(),x,y);doc.setFont('helvetica','normal');
+    doc.setFontSize(10.5);doc.setTextColor(...PDF_INK);doc.text(doc.splitTextToSize(pdfTxt(m[1]),colW-6)[0],x,y+5)});
+  y+=13;
+  const cs={}; q.cols.forEach((c,i)=>{if(c.r)cs[i]={halign:'right'}});
+  doc.autoTable({startY:y,margin:{left:M,right:M,bottom:18},head:[q.cols.map(c=>c.t)],body:q.rows.map(r=>r.map(pdfTxt)),
+    styles:{font:'helvetica',fontSize:9,cellPadding:2.2,textColor:PDF_INK,lineColor:[217,222,232]},
+    headStyles:{fillColor:PDF_ACCENT,textColor:255,fontStyle:'bold',fontSize:8.5},alternateRowStyles:{fillColor:[248,249,252]},columnStyles:cs,
+    didParseCell:d=>{if(d.section==='head'&&q.cols[d.column.index].r)d.cell.styles.halign='right'}});
+  doc.autoTable({startY:doc.lastAutoTable.finalY+7,margin:{left:W-M-88,right:M,bottom:18},theme:'plain',body:q.totals.map(t=>[pdfTxt(t[0]),pdfTxt(t[1])]),
+    styles:{font:'helvetica',fontSize:9.5,cellPadding:1.8,textColor:PDF_INK},columnStyles:{0:{textColor:PDF_MUTED},1:{halign:'right'}},pageBreak:'avoid',
+    didParseCell:d=>{if(q.totals[d.row.index][2]){d.cell.styles.fillColor=PDF_SOFT;d.cell.styles.fontStyle='bold';d.cell.styles.fontSize=11;d.cell.styles.textColor=PDF_INK;d.cell.styles.cellPadding=3}}});
+  y=doc.lastAutoTable.finalY+10; doc.setFontSize(8);doc.setTextColor(...PDF_MUTED);
+  for(const n of q.notes){const ls=doc.splitTextToSize(pdfTxt(n),W-2*M); if(y+ls.length*3.8>285){doc.addPage();y=20} doc.text(ls,M,y); y+=ls.length*3.8+1.5}
+  const pages=doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFontSize(8);doc.setTextColor(...PDF_MUTED);doc.text('Yuxme',M,289);doc.text(`Pagina ${i} di ${pages}`,W-M,289,{align:'right'})}
+  return doc;
+}
+
+/* ---------- contratti: testo con campi [[chiave|suggerimento]], stessa fonte per pagina e PDF ---------- */
+const PRIVACY=`@br
+# INFORMATIVA TRATTAMENTO DATI PERSONALI
+= ART. 13 REGOLAMENTO UE 2016/679 (GDPR)
+Ai sensi dell’articolo 13 del Regolamento UE 679/2016 in materia di protezione dei dati personali (GDPR) La informiamo che i dati personali da Lei forniti potranno essere oggetto di trattamento nel rispetto di quanto segue.
+## TITOLARE DEL TRATTAMENTO
+Yuxme srl con sede legale In: Milano, via San Gregorio n. 55 CAP: 20124 partita IVA 10819810960 PEC yuxme@legal.email.it
+## FINALITÀ DEL TRATTAMENTO E BASE GIURIDICA
+1. I dati personali da Lei forniti verranno trattati per le attività connesse all’espletamento della prestazione richiesta e per la successiva gestione del rapporto da questa derivante; per gli obblighi di natura contabile fiscale e per obblighi derivanti da Leggi, Norme e Regolamenti Comunitari e Nazionali; per attività informativa connessa al rapporto (art. 6 comma 1 lettera B GDPR).
+2. Previa acquisizione del Suo espresso consenso (art. 6 comma 1 lettere A GDPR), i Suoi dati personali potranno essere utilizzati allo scopo di inviarle materiale informativo e commerciale, illustrativo dei servizi di Yuxme , per ricerche di mercato e per la comunicazione dei Suoi dati personali alle altre società del nostro gruppo per fini di marketing.
+3. I Suoi dati personali, inoltre, potrebbero essere utilizzati, esclusivamente previo suo libero, facoltativo, apposito ed esplicito consenso (art. 6 comma 1 lettere A GDPR), anche per individuare e definire le abitudini commerciali (cosiddetta “profilazione”). L’elaborazione dei suoi dati personali, compresi dati relativi alla sua situazione finanziaria e di utile delle aziende, abitudini di acquisto ed interessi specifici di imprenditori e professionisti, saranno elaborati con modalità interamente o parzialmente automatizzate al fine di individuare ed offrire servizi o attività più appropriate alla Sua Persona;
+## COMUNICAZIONE DATI A SOGGETTI DIVERSI DAL TITOLARE
+Nei limiti pertinenti alle finalità di trattamento indicate, i dati personali potranno essere comunicati agli Incaricati al trattamento e ai Responsabili del trattamento.
+I dati identificativi (nome e cognome), il telefono e l’indirizzo mail potranno essere comunicati alle altre società del gruppo, che potranno utilizzarli per fini commerciali. Gli eventuali Responsabili del trattamento designati saranno vincolati alla riservatezza e sicurezza dei dati, attraverso un contratto e l’elenco aggiornato dei Responsabili al Trattamento potrà sempre essere richiesto al Titolare del Trattamento.
+## TRASFERIMENTO DATI A PAESI TERZI
+Yuxme, di norma tratta i Suoi dati personali all’interno del territorio dell’Unione Europea. Tuttavia, i Suoi dati personali potrebbero essere trasferiti anche in paesi non appartenenti allo Spazio Economico Europeo ( c.d. Paesi Terzi) o ad un'organizzazione internazionale. Resta in ogni caso inteso che il Titolare, ove si rendesse necessario, avrà facoltà di spostare i server anche extra-UE, in tal caso, il Titolare assicura sin d’ora che il trasferimento dei dati extra-UE avverrà in conformità alle disposizioni di legge applicabili, previa stipula delle clausole contrattuali standard previste dalla Commissione Europea.
+## TEMPI DI CONSERVAZIONE DEI DATI
+1. I dati forniti verranno conservati per il tempo necessario allo svolgimento del contratto sottoscritto, compresa la regolarizzazione della Sua posizione contrattuale, e per le formalità o obblighi di legge allo stesso connesse (10 anni ai fini civilistici e 6 anni ai fini fiscali).
+2. I dati personali acquisiti ai fini dell’invio di materiale informativo e commerciale e per ricerche di mercato verranno conservati fino a sua richiesta di non voler più usufruire del servizio e comunque per un periodo non superiore ai 24 mesi dall’acquisizione del Suo consenso.
+3. I dati personali trattati ai fini di profilazione saranno conservati per 12 mesi dalla registrazione dei dati, ovvero sino alla revoca del suo consenso.
+## NATURA DELLA COMUNICAZIONE DEI SUOI DATI PERSONALI
+Per l’esecuzione delle finalità di cui al punto 1., la comunicazione dei suoi dati personali costituisce un requisito necessario per la conclusione di un contratto, diversamente il Titolare sarà impossibilitato alla stipula.
+## DIRITTI DELL’INTERESSATO
+Per far valere i Suoi diritti, così come previsti dall'articolo 15 del GDPR e seguenti, si potrà rivolgere al Titolare del trattamento contattabile tramite i recapiti sopra indicati, identificandosi e specificando la natura della richiesta o del problema evidenziato. Potrà esercitare sui propri dati i diritti di accesso, rettifica, cancellazione, limitazione, opposizione al trattamento e portabilità dei dati. L’interessato ha la facoltà di procedere, in ogni momento, alla revoca dei consensi al trattamento dei propri dati personali, contattando il Titolare ai dati di contatto sopra indicati. Ai sensi dell’art. 7 del Regolamento UE, la revoca del consenso non comporta pregiudizio sulla liceità del trattamento basata sul consenso effettuato prima dell’avvenuta revoca.
+Lei ha, altresì, il diritto di proporre reclamo all’autorità di controllo competente, identificata nel Garante della Privacy, con sede in Piazza Venezia 11 - 00186 Roma – Tel. 06.696771 - Mail: protocollo@gpdp.it
+# CONSENSO AL TRATTAMENTO DATI PERSONALI
+= ART. 7 REGOLAMENTO UE 2016/679
+Io sottoscritto [[prNome|nome e cognome]] nato a [[prNato|luogo]] il [[prIl|data]] letta e compresa l’informativa ai sensi dell’articolo 13 del Regolamento Europeo 2016/679:
+[[?prMk]] acconsento al trattamento dei miei dati personali per finalità di marketing (anche telefonico) e di invio di comunicazioni commerciali di Yuxme .
+[[?prPf]] acconsento al trattamento dei miei dati personali per profilazione, compresi dati relativi alla sua situazione finanziaria e di utile delle aziende, abitudini di acquisto ed interessi specifici di imprenditori e professionisti, saranno elaborati con modalità interamente o parzialmente automatizzate al fine di individuare ed offrire servizi o attività più appropriate alla Sua persona;
+[[?prRm]] acconsento al trattamento dei miei dati personali per finalità ricerche di mercato da parte di Yuxme .
+Data [[data|data]] Firma ______________________________`;
+const SEPA=who=>`@br
+# MANDATO PER ADDEBITO DIRETTO SEPA
+## AZIENDA CREDITRICE
+YUXME S.R.L. P.IVA IT10819810960 Via San Gregorio n. 55 - 20124 Milano (MI)
+## BANCA DEL DEBITORE
+BANCA [[sBanca|banca]] AGENZIA [[sAgenzia|agenzia]]
+COORDINATE BANCARIE DEL CONTO DA ADDEBITARE IBAN: [[sIban|IBAN]]
+## DATI RELATIVI AL DEBITORE
+SOTTOSCRITTORE DEL MODULO Cognome e Nome: [[sNome|cognome e nome]] Indirizzo: [[sInd|indirizzo]] Codice Fiscale: [[sCf|codice fiscale]]
+INTESTAZIONE DEL CONTO Ragione Sociale o Nome e Cognome (Ditta individuale) [[soc|ragione sociale]] Codice Fiscale o Partita IVA: [[sPiva|codice fiscale o partita IVA]]
+## A D E S I O N E
+La sottoscrizione del presente mandato comporta (A) l’autorizzazione a Yuxme S.r.l. a richiedere alla banca del debitore l’addebito del suo conto e (B) l’autorizzazione alla banca del debitore di procedere a tale addebito conformemente alle disposizioni impartite da ${who}.
+Le parti hanno facoltà di recedere in ogni momento dal presente accordo, con un preavviso pari a quello previsto nel contratto di conto corrente per il recesso da quest’ultimo rapporto, da darsi mediante comunicazione scritta. Il sottoscrittore prende atto che sono applicate le condizioni già indicate nel contratto di conto corrente, in precedenza sottoscritto fra le parti, o comunque rese pubbliche presso gli sportelli della banca e tempo per tempo vigenti. Per quanto non espressamente previsto dalle presenti disposizioni, sono applicabili le “Norme che regolano i conti correnti di corrispondenza e servizi connessi” a suo tempo sottoscritte dalle parti, che formano parte integrante del presente contratto.
+L’addebito in conto corrente può richiedere un massimo di 5 giorni lavorativi per essere processato.
+Luogo e data [[luogo|luogo]], [[data|data]] Firma del sottoscrittore ______________________________
+## R E V O C A
+Il sottoscrittore revoca l’autorizzazione permanente di addebito in c/c in oggetto, aperto presso di Voi, degli ordini di incasso elettronici inviati dall’Azienda e contrassegnati con le coordinate dell’Azienda creditrice surriportate o aggiornate d’iniziativa dall’Azienda.
+Luogo e data ................................... Firma del sottoscrittore .........................................
+AVVERTENZE Il sottoscrittore del modulo deve essere sempre persona fisica. Nel caso di c/c intestato a persona giuridica coincide con il soggetto delegato ad operare sul conto. Nel caso di c/c intestato a persona fisica coincide con il titolare medesimo ovvero con il soggetto delegato ad operare sullo stesso.`;
+const PREMESSE=`- promozione e pubblicità dell'attività di consulenza fiscale in conformità delle norme deontologiche;
+- attività di advertising, anche con post social e newsletter;
+- produzione di una serie di contenuti utili in ottica SEO;
+- organizzazione di convegni, workshop e seminari per gli operatori del settore;
+- pubblicazione di riviste divulgative e/o professionali scientifiche in materia fiscale, incluso l'invio di newsletter informative;
+- svolgimento di mera attività ausiliaria all'esercizio delle professioni riservate, con esclusione in ogni caso di attività professionale a componente intellettuale;
+- formazione e rilascio crediti formativi in qualità di soggetto abilitato dal Consiglio Nazionale dell’Ordine dei Dottori Commercialisti e degli Esperti Contabili;`;
+const PREMESSE2=`- attività di customer care e verifica della customer satisfaction;
+- ricerca, selezione e formazione del personale di assistenza;
+- fornitura ai Dottori Commercialisti, Ragionieri Commercialisti o Esperti contabili dei sistemi informatici e tecnologici più avanzati, per il supporto alla loro attività professionale;
+- messa a disposizione di appositi spazi riservati presso le sedi della Società di servizi, dotati di tutta la strumentazione necessaria, per gli incontri di persona tra Cliente e Professionista incaricato;
+- attività di front office e segreteria nei confronti dei Clienti, inclusa attività di data entry ed assistenza telefonica;`;
+
+const DSL_PMI=`# CONTRATTO DI SERVIZI ED ELABORAZIONE MATERIALE DATI TUTTO INCLUSO E MANDATO A PROFESSIONISTA ABILITATO PER LE MATERIE RISERVATE
+Il sottoscritto Sig. [[sig|nome e cognome]] Nato a [[natoA|luogo]] ([[natoPr|prov.]]), il [[natoIl|data]] residente a [[resA|comune]] ([[resPr|prov.]]), in via [[resVia|via]] n. [[resN|n.]] ([[resCap|CAP]]), C.F. persona fisica [[cf|codice fiscale]], in qualità di rappresentate legale della società [[soc|ragione sociale]], con sede in [[sede|comune]] via [[sedeVia|via]] n. [[sedeN|n.]], provincia [[sedePr|prov.]], CAP [[sedeCap|CAP]], P.I. Azienda [[piva|partita IVA]] C.F. Azienda [[cfAz|codice fiscale]] P.E.C. [[pec|PEC]], SDI [[sdi|codice SDI]] successivamente denominato “Cliente”,
+= CONFERISCE A
+YUXME SRL (divisione fiscale del gruppo Allcore S.p.A.) con sede in Milano, via San Gregorio, 55, 20124, Milano, partita I.V.A. 10819810960, PEC: yuxme@legal.email.it, “Società di servizi”, così successivamente denominata, anche attraverso il ricorso a collaboratori, piattaforme web, subfornitori, risorse umane dislocate all’interno dell’Unione Europea, e ricorrendo esclusivamente a professionisti abilitati nelle materie riservate, anche connesse o strumentali
+= P R E M E S S E
+La Società di Servizi, anche attraverso il ricorso a collaboratori piattaforme web, subfornitori, offre i seguenti servizi tutto compreso in materia fiscale ai soggetti interessati:
+${PREMESSE}
+- raccolta e trattamento, anche su base automatizzata ed utilizzando l'intelligenza artificiale e fornitori terzi, di dati relativi a professionisti che abbiano conseguito l'abilitazione all'esercizio della professione ex D.Lgs.n. 139/2005 e successive modifiche ed integrazioni, per lo svolgimento delle attività riservate per legge a Dottori Commercialisti, Ragionieri Commercialisti o Esperti contabili o STP. Tali dati sono conservati in data-base e strutturati sulla base di titoli e specializzazioni conseguite, pubblicazioni, esperienza, competenze, capacità, collocazione geografica, disponibilità e misura del compenso, incrociando anche i dati in modo da prefigurare il migliore Pool di professionisti per aree di competenza, anche iscritti ad altri Albi professionali; selezione di idoneo/i Professionista/i, tra quelli sopra individuati, (Professionista incaricato) che si occupi/no, per conto dei Clienti finali, della tenuta della contabilità, della consulenza fiscale e/o di operazioni societarie, inclusa la risoluzione delle problematiche legali connesse;
+${PREMESSE2}
+- supporto compilazione informative privacy;
+- ricerche AML e adeguata verifica della clientela tramite piattaforme informatiche;
+## 1. Attività e relative compenso
+Con il presente contratto il Cliente conferisce apposito mandato alla Società di Servizi di selezionare idoneo/i Professionista/i, tra quelli indicati in premessa, affinché questo/i proceda/no a:
+- Elaborazione dati
+- Assistenza consulenze materia di Imposta sul Valore Aggiunto ed imposte sui redditi
+- Liquidazione Iva mensile e trimestrale
+- Presentazione e Invio della dichiarazione IVA
+- Presentazione e Invio delle comunicazioni dati IVA
+- Predisposizione e Invio dichiarazione Irap
+- Predisposizione e Invio modello Unico
+- Predisposizione e Invio Modello 770
+- Predisposizione e deposito bilancio d’esercizio
+- Assistenza e consulenza continuativa in materia contabile;
+- N. 4 colloqui di consulenza fiscale e tributaria con Professionista abilitato (Accounting Manager) da svolgersi durante l'anno solare.
+## COMPENSO
+Contributo attivazione una tantum: [[attiv|importo]] € + IVA - Canone mensile: € [[canone|importo]] + IVA
+(oltre spese vive sostenute per lo svolgimento dell'incarico) - Data decorrenza canone mensile: [[decor|data]] - Oltre [[soglia|numero]] registrazioni / anno: € 1,50 +IVA / reg.
+PRESTAZIONI EXTRA: [[?x1]] PREDISPOSIZIONE INTRASTAT €50,00+IVA [[?x2]] INVIO DATI DICH. REDDITI ALLA CASSA PROF. €50,00+IVA [[?x3]] AUTOLIQUIDAZIONI INAIL €50,00+IVA [[?x4]] INVIO MODELLO EAS (SOC. E ASS. SPORT.) €50,00+IVA [[?x5]] CALCOLO ACCONTO IMU € 20,00+IVA [[?x6]] CALCOLO SALDO IMU €20,00+IVA [[?x7]] CALCOLO RAVVEDIMENTO OPEROSO E F24 €20,00+IVA [[?x8]] CERTIF. UNICHE RITENUTE EFFETTUATE €20,00+IVA [[?x9]] [[xAltro|altra prestazione]]
+## 2. Modalità di invio dei flussi dei dati
+Le parti concordano che, se non diversamente indicato, l'invio dei documenti relativi necessari all'espletamento dell'incarico, e richiesti dal Professionista incaricato di cui al §5, debba avvenire secondo le seguenti modalità:
+- Formato file: PDF o JPG;
+- Dimensione massima del singolo file: 10MB;
+- Risoluzione scansione: tra 100 e 200 DPI scala grigi;
+- Caricamento attraverso il portale yuxme.it nell’apposita Area Riservata del Cliente.
+## 3. Tempistica invio dei flussi dei dati da parte del Cliente
+Le parti concordano espressamente la seguente tempistica per la messa a disposizione o l'invio dei flussi dei dati al Professionista incaricato di cui al §5 secondo le modalità indicate al precedente §2: - Documenti rilevanti ai fini IVA con periodicità mensile: entro il 9° giorno del mese successivo a quello di riferimento delle fatture attive e passive; - Documenti rilevanti ai fini IVA con periodicità trimestrale: entro il 10° giorno del mese successivo a quello di riferimento delle fatture attive e passive (anche per le periodicità IVA trimestrali i documenti verranno quindi consegnati con cadenza mensile, anche allo scopo di garantire la fattibilità degli altri adempimenti fiscali legati alla contabilità, ad esempio versamento ritenute); - Altri documenti: entro il 30° giorno dalla data di riferimento del documento e comunque in tempi compatibili per l'espletamento dell'incarico. Il Cliente ha l’obbligo di far pervenire tempestivamente al Professionista incaricato di cui al § 5, secondo le modalità indicate al precedente §2, la documentazione necessaria all’espletamento dell’incarico. A tal fine, il Cliente prende atto che la legge prevede termini e scadenze obbligatori per gli adempimenti connessi alla prestazione professionale indicata in oggetto. L'invio della documentazione occorrente non sarà oggetto di sollecito da parte della Società di Servizi che, pertanto, declina ogni responsabilità per la mancata o tardiva esecuzione dell’incarico dovuta al ritardo, incuria o inerzia da parte del Cliente. Il Cliente ha altresì l'obbligo di informare la Società di Servizi, tempestivamente e per iscritto, in ordine a qualsivoglia variazione inerente all'incarico; ciò affinché possa essere informato lo stesso Professionista incaricato che assumerà le determinazioni in merito.
+## 4. Tempistica di elaborazione dei dati
+Il Professionista incaricato dalla Società di servizi di cui al §5 rispetterà la seguente tempistica per il trattamento dei dati di cui ai precedenti §§: - Elabor. dei documenti relativi alla liq. IVA mensile: entro 6 giorni lavorativi dalla ricezione del documento elettronico; - Elabor. dei documenti relativi alla liq. IVA trimestrale: entro 20 giorni lavorativi dalla ricezione del documento elettronico; - Elabor. dei documenti relativi alla contabilità generale: entro 30 giorni lavorativi dalla ricezione del documento elettronico; - Elebor. altri documenti: nei tempi previsti a pena di decadenza per l'espletamento dell'incarico. Successivamente alla acquisizione diretta con collegamento al SDI e/o al Cassetto Fiscale o al caricamento dei documenti dematerializzati sul portale WEB di cui al §2., sarà segnalata al Cliente l’avvenuta acquisizione dei documenti. La Società di Servizi classificherà e dividerà il file in tanti file quanti sono i documenti acquisiti, ordinandoli anche per tipologia e data. Il Professionista incaricato di cui al §5 provvederà ad effettuare gli opportuni controlli sulle registrazioni contabili ed a curare gli incombenti consequenziali secondo la normativa civilistica e fiscale.
+## 5. Materie riservate. Gestione dei rapporti con Commercialisti ed Esperti Contabili (Accounting Manager). Pagamento del Professionista incaricato
+Più specificatamente il Cliente conferisce alla Società di Servizi apposito mandato volto: (i) a individuare e proporre un Professionista abilitato di comprovata esperienza (Professionista incaricato), c.d. Accounting Manager per l'assistenza contabile, fiscale e tributaria ordinaria; (ii) a gestire per proprio conto ogni rapporto con i Professionisti così individuati relativamente allo svolgimento delle attività professionali ex D.Lgs.n. 139/2005, anche connesse o strumentali, riservate per legge a Commercialisti ed esperti contabili. Tutti i colloqui con il Professionista incaricato potranno essere svolti in video-conferenza. Il Professionista incaricato non assumerà alcun incarico direttamente verso il Cliente finale, neanche congiunto con la Società di Servizi. Il Cliente si impegna a sottoscrivere le procure di cui il Professionista incaricato dovesse aver bisogno per dimostrare i propri poteri rappresentativi di fronte all'Amministrazione Tributaria. Entro 7 giorni dalla decorrenza del presente accordo Yuxme s.r.l. comunicherà al Cliente, presso l'indirizzo PEC sopra indicato, le seguenti generalità del Dottore o del Ragioniere scelto da Yuxme s.r.l. : Nome, Cognome, titolo, data di nascita, luogo di residenza, C.F., P.I., sede dello Studio, Ordine Professionale di appartenenza, relativa sezione, estremi dell'Assicurazione del Professionista, composizione della Società di professionisti o dello Studio Associato di appartenenza. Il Cliente esonera la Società di servizi da qualsiasi responsabilità derivante da modifiche apportate dal Professionista alle scritture contabili predisposte da Società di servizi e/o da successive integrazioni connesse con il completamento degli adempimenti contabili e fiscali. Il compenso del Professionista incaricato, per l'attività riservata prestata a favore del Cliente, è interamente ad esclusivo carico dalla Società di Servizi, che conferisce al Professionista abilitato il relativo incarico. Con promessa del fatto del terzo ex art. 1381 c.c. Yuxme s.r.l. dichiara che il Professionista incaricato eseguirà integralmente e tempestivamente quanto previsto nel presente contratto di sua competenza e rinuncerà, senza riserva alcuna, ad ogni diritto, a qualsivoglia titolo, contrattuale e/o extracontrattuale, verso il Cliente finale verso il quale non avrà nulla a pretendere.
+## 6. Tenuta delle scritture contabili
+La Società di Servizi provvederà alla conservazione digitale delle scritture contabili ai sensi del Codice dell'Amministrazione Digitale e delle vigenti Linee Guida AgID. La Società di Servizi è l’unico soggetto depositario delle scritture contabili del Cliente e pertanto il Professionista incaricato Accounting Manager non è tenuto alla conservazione dell’originale cartaceo ed alla protocollazione dei documenti IVA. Ciò in ottemperanza al DPR 633/72. Presso lo studio Professionista incaricato Accounting Manager o presso la sede sociale del Cliente rimarranno conservati i libri obbligatori ai fini civilistici nel rispetto di tutte le comunicazioni e formalità necessarie; la Società di servizi non si assume alcuna responsabilità per ogni danno, perdita, costo o conseguenza pregiudizievole.
+## 7. Decorrenza e durata dell’incarico
+Ad esclusione delle Prestazioni extra, il presente accordo costituisce contratto di durata o periodico ai sensi dell'art. 1458 c.c. e decorre dalla sua sottoscrizione fino al 31 Dicembre del 3° anno successivo alla sottoscrizione stessa, con rinnovo tacito annuale dopo tale prima scadenza. Il Cliente può escludere il rinnovo tacito comunicando all’altra parte la propria volontà a mezzo lettera raccomandata, con avviso di ricevimento, da inviarsi entro il 30 settembre di ogni anno. Si porta a conoscenza del Cliente che può revocare unilateralmente, con raccomandata da inviarsi 3 mesi prima, la procura al Professionista incaricato. In tale ipotesi è impedito a quest'ultimo l'ulteriore svolgimento dell'attività a lui riservata. E' altresì esclusa anche la rappresentanza del Cliente di fronte all'Amministrazione Tributaria. In tale evenienza il presente contratto si risolve per mutuo consenso ex art. 1353 c.c., restando fermi e dovuti i corrispettivi già corrisposti a Yuxme s.r.l. e quelli da corrispondere per l'attività già espletata.
+## 8. Pagamento Compenso
+Per lo svolgimento delle prestazioni oggetto del presente incarico, il Cliente si impegna a corrispondere alla Società di Servizi i corrispettivi indicati al § 1 in via anticipata, entro il giorno 5 di ogni mese, mediante:
+[[?sepa]] PAGAMENTO SEPA
+In fattura saranno evidenziati i costi vivi anticipati dalla Società di Servizi (es. imposta di bollo e registro, spese postali, spese di deposito di atti, marche da bollo). Il Cliente si impegna a rimborsarli. Nel caso di prestazione continuativa ultrannuale i compensi saranno adeguati sulla base della variazione annuale dell’indice ISTAT. Per le eventuali prestazioni specifiche, diverse da quelle indicate nel presente contratto, i corrispondenti compensi saranno determinati sulla base di un ulteriore accordo fra il Cliente e la Società di servizi, previa interlocuzione con il Professionista Incaricato.
+## 9. Antiriciclaggio
+In attuazione di quanto stabilito dal d.lgs. n. 231/2007, dal momento della sottoscrizione della presente lettera di incarico, la Società di Servizi adempie gli obblighi concernenti la normativa antiriciclaggio ed assolve gli obblighi di adeguata verifica della clientela, anche in favore del Professionista Incaricato al quale rilascerà opportuna attestazione.
+## 10. Protezione dei dati personali
+Ai sensi del Regolamento UE 2016/679 (Regolamento Generale sulla Protezione dei Dati, RGPD) e del d.lgs. 30 giugno 2003, n. 196 (Codice Privacy), il Cliente autorizza Yuxme Srl. s.a.s., in qualità di Titolare del trattamento (i cui dati contatto sono in intestazione riportati), al Trattamento dei dati personali secondo l'Allegato “Informativa trattamento dati personali”.
+## 11. Foro esclusivo
+Per qualsiasi controversia inerente la validità, l’esecuzione e/o l’interpretazione del presente atto, sarà competente il Tribunale di Perugia, che tutte le parti firmatarie del presente accordo eleggono quale foro esclusivo.
+[[luogo|luogo]], il [[data|data]]
+il Cliente X ______________________________
+La Società di servizi ______________________________
+Ai sensi degli articoli 1341 e 1342 c.c. Si approvano espressamente i seguenti articoli: 2. Modalità di invio dei flussi dei dati, 3. Tempistica di elaborazione dei dati – 5. Materie riservate. Gestione dei rapporti con Commercialisti ed Esperti Contabili (Accounting Manager). Pagamento del Professionista incaricato - 7. Decorrenza e durata dell'incarico - 11. Foro Esclusivo.
+[[luogo|luogo]], il [[data|data]]
+il Cliente X ______________________________
+La Società di servizi ______________________________
+${PRIVACY}
+${SEPA('Yuxme S.r.l.')}`;
+
+const ST_INTRO=`Il Servizio consiste nella fornitura di un'infrastruttura tecnologica integrata (Gestionale, Web App e AI) finalizzata all'automazione del data entry contabile e al servizio di consulenza in ambito contabile e dichiarativi fiscali.
+Con il servizio full viene concesso, per ogni utente del Cliente, l’accesso alla piattaforma integrata con IA per l’emissione, la ricezione e il caricamento dei documenti, la consultazione quotidiana di dashboard con i principali dati contabili aggiornati, la tenuta della contabilità ed elaborazione adempimenti fiscali, il supporto di un Cont Controller dedicato, che registrerà e supervisionerà la contabilità e curerà l’elaborazione dei dichiarativi routinari, Accounting Manager che svolgerà l’attività di consulenza periodica oltre che chisura delle situazioni annuali con calcolo imposte, elaborazione dichiarativi e deposito di Bilanci.`;
+const dslStudio=(has,cond,bozza)=>`# CONTRATTO DI SERVIZI LICENZA D'USO PIATTAFORMA, SUPPORTO CONTABILE, FULL ASSISTANCE (PARTNER/PROFESSIONISTA)
+La società [[soc|denominazione dello studio]] con sede in [[sede|sede]] codice fiscale e partita iva [[piva|codice fiscale e partita IVA]] nella persona del suo legale rappresentante Dott. [[sig|nome e cognome]] , nato a [[natoA|luogo]] ([[natoPr|prov.]] ) il [[natoIl|data]] codice fiscale [[cf|codice fiscale]] , domiciliato in [[dom|domicilio]] Iscritto all'Ordine dei Dottori Commercialisti e degli Esperti Contabili di [[ordine|sede dell'Ordine]] al n. [[ordN|numero]] sez. [[ordSez|sezione]] , di seguito “Professionista” .
+= E
+YUXME SRL (divisione software del gruppo Allcore S.p.A.) con sede in Milano, Via San Gregorio n. 55 - 20124 Milano partita I.V.A. 10819810960, PEC: yuxme@legal.email.it, in persona del legale rappresentante Andrea Agnoli, PEC: yuxme@legal.email.it, di seguito anche “Yuxme” o “Società di Servizi” che opera anche attraverso il ricorso a collaboratori, piattaforme web, subfornitori, risorse umane dislocate all’interno dell’Unione Europea, ricorrendo esclusivamente a professionisti abilitati nelle materie riservate, anche connesse o strumentali
+= P R E M E S S O C H E
+La Società di Servizi, anche attraverso il ricorso a collaboratori, piattaforme web, subfornitori, offre i seguenti servizi tutto compreso in materia fiscale ai soggetti interessati:
+${PREMESSE}
+- sviluppo e gestione di piattaforme "AI Driven" per l'automazione del data entry contabile;
+- servizi di Cloud Hosting e Cloud Data Management per l'elaborazione dei dati contabili;
+- servizi di conservazione digitale a norma;
+- raccolta e trattamento, anche su base automatizzata ed utilizzando l'intelligenza artificiale, di dati relativi a professionisti che abbiano conseguito l'abilitazione all'esercizio della professione ex D.Lgs. n. 139/2005 e successive modifiche ed integrazioni, per lo svolgimento delle attività riservate per legge a Dottori Commercialisti, Ragionieri Commercialisti o Esperti contabili o STP. Tali dati sono conservati in database e strutturati sulla base di titoli e specializzazioni conseguite, pubblicazioni, esperienza, competenze, capacità, collocazione geografica, disponibilità e misura del compenso, incrociando anche i dati in modo da prefigurare il migliore Pool di professionisti per aree di competenza, anche iscritti ad altri Albi professionali;
+- selezione di idoneo/i Professionista/i, tra quelli sopra individuati, (Partner) che si occupi/no, per conto dei Clienti finali o di altri Professionisti, della tenuta della contabilità, della consulenza fiscale e/o di operazioni societarie, inclusa la risoluzione delle problematiche legali connesse;
+${PREMESSE2}
+- supporto compilazione informativa privacy;
+- ricerche AML e adeguata verifica della clientela tramite piattaforme informatiche;
+- il Professionista intende avvalersi della tecnologia e del supporto operativo di Yuxme, mantenendo in capo a sé la titolarità del rapporto professionale e gli adempimenti riservati per legge
+## 1. Oggetto dell'incarico. Gestione contabile.
+Il presente contratto ha per oggetto l'acquisto da parte del Professionista del diritto di utilizzazione del SERVIZIO YUXME "AI DRIVEN PLATFORM" per i propri Clienti finali.
+Yuxme si obbliga a:
+- fornire l'accesso alla piattaforma Yuxme per la gestione dei flussi di fatturazione elettronica (attiva/passiva) e caricamento documenti contabili per ogni Cliente finale;
+- rielaborare tramite AI la proposta di registrazione contabile dei documenti caricati dall’UTENTE in piattaforma. Qualora l’Intelligenza Artificiale rilevi un basso indice di confidenza, il processo prevede in automatico l'intervento di un operatore Yuxme specializzato (Human-in-the-loop);
+- in caso di dati mancanti nel documento originale, il processo verrà sospeso e sarà inviata segnalazione al Professionista per l'integrazione, necessaria allo sblocco della registrazione;
+- garantire al Professionista accesso alle piattaforme di Intelligenza Artificiale e strumenti software dal quale lo studio commercialista potrà monitorare, analizzare e modificare le registrazioni contabili validate, e svolgere tutti gli adempimenti previsti dalla normativa;
+- provvedere alla conservazione digitale a norma delle fatture elettroniche.
+## 1.2. Modalità di fruizione del servizio e Flussi Dati
+L’attivazione dei Clienti finali dovrà avvenire con le seguenti modalità:
+- Acquisizione dei dati dell’UTENTE da parte del Professionista (Ragione Sociale completa, P. Iva, visura societaria, documento di identità del legale rappresentante/titolare, Regime Contabile, Periodicità IVA, Cod. Attività Ateco) previo svolgimento dell’adeguata verifica da parte del Professionista stesso ai fini della normativa antiriciclaggio;
+- Comunicazione a Yuxme, da parte del Professionista della lista, degli utenti attivati, corredata dai dati di cui al precedente comma e di una di una scheda anagrafica per ogni utente attivato, contenente: Ragione Sociale, Tipologia di attività, Libro cespiti, Registri IVA, Banche Attive, Lista Finanziamenti, Leasing, C. Anticipi e Automezzi
+- Invio all’UTENTE, a cura del Professionista, del link personalizzato di accesso all’APPLICAZIONE previamente messo a disposizione da Yuxme a conclusione dell'attività indicata ai commi precedenti.
+- Primo accesso all’APPLICAZIONE da parte dell’UTENTE, con creazione di user ID e Password e accettazione telematica delle CONDIZIONI GENERALI (UTENTE) come da allegati al presente accordo;
+- Il codice destinatario univoco dell’APPLICAZIONE per ricevere le fatture elettroniche è KGVVJ2H e potrà essere in futuro variato ad insindacabile giudizio di Yuxme, salvo preavviso di almeno 30gg.
+Yuxme predisporrà la contabilità sul proprio piano dei conti, garantendo la correttezza dei dati inseriti. Il Professionista si assume l’obbligo e la responsabilità di verificare la corretta registrazione contabile ai fini fiscali, segnalando eventuali discrasie o errori, e sarà l’unico soggetto tenuto ad eseguire le attività professionali che sono riservate per legge a Commercialisti ed Esperti Contabili.
+Yuxme non potrà essere ritenuta responsabile per la mancata registrazione contabile di documenti che non siano stati forniti dall’UTENTE entro i termini stabiliti. Il Servizio di Registrazione Contabile consente tutti gli adempimenti fiscali a cura del Professionista, che ne resta l’unico responsabile nei confronti dell’UTENTE (es. per dichiarativi, bilanci e consulenza).
+Al fine di controllare la corretta registrazione contabile ed adempiere alle attività professionali di cui al punto precedente, Yuxme concede al Professionista piattaforme di Intelligenza Artificiale e strumenti software dai quali lo studio commercialista potrà monitorare le registrazioni contabili di tutti gli UTENTI ad egli collegati, modificare le imputazioni contabili operate da Yuxme e svolgere tutti gli adempimenti previsti dalla normativa.
+L’utilizzo del Servizio Yuxme e comunque ogni rapporto tra le parti è regolato dalle condizioni generali di servizio che dovranno essere espressamente accettate.
+## 2. Modalità Full Assistance. Attività riservata
+Qualora sia selezionata questa modalità, il Professionista conferisce apposito mandato alla Società di Servizi anche di selezionare altro idoneo/i Professionista/i Partner iscritto/i all'Albo professionale, tra quelli indicati in premessa, affinché questo/i procedano a predisporre, in riferimento ad uno o più Clienti Finali indicati al punto 1.2. una bozza di:
+- Elaborazione dati;
+- Liquidazione Iva mensile e trimestrale;
+- Presentazione e Invio della dichiarazione IVA;
+- Presentazione e Invio delle comunicazioni dati IVA;
+- Predisposizione e Invio dichiarazione Irap;
+- Predisposizione e Invio modello Unico;
+- Predisposizione e Invio Modello 770;
+- Predisposizione e deposito bilancio d'esercizio;
+- Integrativi;
+Il Professionista Partner fornisce un mero supporto altamente specializzato al Professionista ed è sempre a disposizione di quest'ultimo per emendare incongruenze, discrasie, errori e meri errata corrige.
+Il Professionista è l'unico autore e responsabile dei dichiarativi ed integrativi di cui sopra che sono a lui unicamente, giuridicamente e deontologicamente attribuibili.
+Il Professionista è pertanto sempre tenuto ad effettuare gli opportuni controlli ed a curare gli incombenti consequenziali secondo la normativa civilistica e fiscale.
+## 2.2. Modalità di invio dei flussi dei dati
+Per lo svolgimento dell'attività indicata al §2 i dati saranno acquisiti dal Professionista Partner con le stesse modalità e obbligazioni previste al § 1.2. e nelle condizioni generali di servizio.
+## 2.3. Tempistica messa a disposizione dei dati da parte del Professionista partner
+A partire dal settimo giorno antecedente alla relativa scadenza fiscale il Professionista Partner caricherà le bozze degli elaborati dei dichiarativi di cui §2 nel portale pmi.yuxme.it dove saranno a disposizione del Professionista per i successivi incombenti, secondo la normativa civilistica e fiscale, che restano di esclusiva compentenza di quest'ultimo.
+## 2.4. Gestione dei rapporti con Professionista Partner
+Il Professionista conferisce alla Società di Servizi apposito mandato volto a gestire per proprio conto ogni rapporto con il Professionisti Partner nello svolgimento delle attività professionali ex D.Lgs. n. 139/2005, anche connesse o strumentali, riservate per legge a Commercialisti ed esperti contabili.
+Il compenso del Professionista Partner, per l'attività riservata prestata a favore del Professionista, è interamente ad esclusivo carico dalla Società di Servizi, che conferisce al Professionista Partner il relativo incarico.
+Con promessa del fatto del terzo ex art. 1381 c.c. Yuxme s.r.l. dichiara che il Professionista Partner adempierà integralmente e tempestivamente quanto previsto nel presente contratto per quanto di sua competenza e rinuncerà, senza riserva alcuna, ad ogni diritto, a qualsivoglia titolo, contrattuale e/o extracontrattuale, verso il Professionista e verso il Cliente finale di quest'ultimo verso il quali non avrà nulla a pretendere.
+## 3. Tenuta delle scritture contabili
+La Società di Servizi provvederà alla conservazione digitale delle scritture contabili ai sensi del Codice dell'Amministrazione Digitale e delle vigenti Linee Guida AgID. La Società di Servizi è l’unico soggetto depositario delle scritture contabili del Cliente e pertanto nè il Professionista nè il Professionista Partner sono tenuti alla conservazione dell’originale cartaceo ed alla protocollazione dei documenti IVA. Ciò in ottemperanza al DPR 633/72.
+Presso lo studio Professionista o presso la sede sociale del Cliente finale rimarranno conservati i libri obbligatori ai fini civilistici nel rispetto di tutte le comunicazioni e formalità necessari.
+La Società di servizi non si assume alcuna responsabilità per ogni danno, perdita, costo o conseguenza pregiudizievole.
+## 4. Compensi e Pagamenti
+Per le prestazioni di cui al § 1. (Gestione contabile) il Professionista corrisponderà a Yuxme:
+COSTO FISSO: [[lFisso|importo]]€ + iva annui (pari a [[lMese|importo]]€ +iva mensili) per ogni cliente attivato
+COSTO VARIABILE: [[lRiga|importo]]€ + iva per ogni riga contabilizzata
+Qualora appositamente selezionata, per le prestazioni di cui al § 2. (Modalità Full Assistance) il Professionista corrisponderà a Yuxme:
+COSTO FISSO: [[fOp|importo]] + iva annui (pari a € [[fOpM|importo]] +iva mensili) per ogni cliente finale non holding con n.[[fDoc|numero]] documenti contabili compresi nel prezzo;
+COSTO FISSO: [[fHold|importo]] + iva annui (pari a € [[fHoldM|importo]] +iva mensili) per ogni cliente finale holding con n.[[fDoc|numero]] documenti contabili compresi nel prezzo;
+COSTO VARIABILE: [[fEcc|importo]]€ + iva per ogni documento eccedente contabilizzato
+${cond?'CONDIZIONI PARTICOLARI: [[cond|condizioni particolari]]':''}
+Mese Decorrenza: il corrispettivo fisso e/o variabile del servizio di gestioni contabile e/o modalità full assistance per singolo cliente decorre dal mese di attivazione per intero.
+Il pagamento avverrà in via anticipata entro il giorno 5 di ogni mese tramite addebito SEPA. Yuxme si riserva la facoltà di sospendere o interrompere il servizio di registrazione contabile ex art. 1460 c.c. qualora il Professionista non dovesse corrispondere a Yuxme gli importi tra di essi concordati relativi alla registrazione contabile dei documenti caricati dall’UTENTE.
+In nessun caso la Società di Servizi risponderà delle conseguenze pregiudizievoli (danni, sanzioni, interessi o altro) che l’UTENTE o lo studio commercialista dovessero subire in conseguenza dell’interruzione del SERVIZIO, determinata dal mancato pagamento.
+In fattura saranno evidenziate eventuali costi vivi anticipati da Yuxme (es. imposta di bollo e registro, spese postali, spese di deposito di atti, marche da bollo). Il Professionista si impegna a rimborsarli. Nel caso di prestazione continuativa ultrannuale i compensi saranno adeguati sulla base della variazione annuale dell’indice ISTAT.
+Per le eventuali prestazioni specifiche, diverse da quelle indicate nel presente contratto, i corrispondenti compensi saranno determinati sulla base di un ulteriore accordo fra il Professionista e Yuxme .
+## 5. Decorrenza e durata dell’incarico
+Ad esclusione di eventuali Prestazioni extra, il presente accordo ha durata annuale con rinnovo tacito alla scadenza. Restano fermi e dovuti i corrispettivi già corrisposti a Yuxme s.r.l. e quelli da corrispondere per l'attività già espletata.
+È facoltà del Professionista recedere dal contratto unilateralmente con PEC da inviarsi 3 mesi prima della scadenza da valere per l'anno contabile successivo.
+Qualora il contratto si risolva per qualsivoglia motivo, Yuxme si obbliga a mantenere l’accesso attivo all’APPLICAZIONE per ulteriori 90 gg.
+## 6. Patto di non concorrenza
+Salvo espressa autorizzazione scritta del Professionista, e fino ad un periodo di tre anni anni dalla conclusione per qualsivoglia motivo del presente contratto, è fatto divieto a Yuxme ed ad altre società del Gruppo Allcore, inclusi i Professionisti Partner, di offrire i servizi di cui ai §§ 1 e 2, dovendo altrimenti rispondere dei relativi danni,.
+## 7. Foro esclusivo
+Per qualsiasi controversia inerente la validità, l’esecuzione e/o l’interpretazione del presente atto, sarà competente il Tribunale di Perugia, che tutte le parti firmatarie del presente accordo eleggono quale foro esclusivo.
+[[luogo|luogo]], il [[data|data]]
+Il Professionista X ______________________________
+Yuxme Srl ______________________________
+Ai sensi degli articoli 1341 e 1342 c.c. Si approvano espressamente i seguenti articoli: 1.2. Modalità di fruizione del servizio e Flussi Dati; 2. Modalità Full Assistance. Attività riservata; 2.4. Gestione dei rapporti con Professionista Partner; 4. Compensi e Pagamenti; 5. Decorrenza e durata dell’incarico; 6. Patto di non concorrenza; 7. Foro esclusivo
+[[luogo|luogo]], il [[data|data]]
+Il Professionista X ______________________________
+Yuxme Srl ______________________________
+${has.light?`@br
+# MODULO D’ORDINE LIGHT
+Il Servizio consiste nella fornitura di un'infrastruttura tecnologica integrata (Gestionale, Web App e AI) finalizzata all'automazione del data entry contabile.
+Flusso Operativo: Il sistema elabora proposte di registrazione automatica dei documenti caricati. Qualora l’Intelligenza Artificiale rilevi un basso indice di confidenza, il processo prevede l'intervento di un operatore Yuxme specializzato interno all'Azienda (Human-in-the-loop), senza oneri comunicativi per lo Studio.
+Validazione (Bulk Approval): Lo Studio mantiene l’esclusiva responsabilità della convalida finale delle scritture, potendo usufruire di una funzionalità di approvazione massiva (e correzione qualora necessaria) basata sui livelli di affidabilità garantiti dal sistema.
+Limitazioni: In caso di dati strutturalmente mancanti nel documento originale, il processo verrà sospeso e segnalato allo Studio per l'integrazione, necessaria allo sblocco della pratica.
+## ALLEGATO 1 – MODULO D’ORDINE (UTENTE)
+@tab:light
+PRICING:
+COSTO FISSO: [[lFisso|importo]]€ + iva annui (pari a [[lMese|importo]]€ +iva mensili) per cliente attivato
+COSTO VARIABILE: [[lRiga|importo]]€ + iva per ogni riga contabilizzata
+DECORRENZA: il corrispettivo fisso e variabile del servizio di elaborazione dati per singolo cliente attivato decorre dal mese di attivazione per intero.
+*Indicare una stima del numero di documenti da registrare in un anno. Il costo sarà determinato dal numero di righe effettivamente registrato.`:''}
+${has.fullnh?`@br
+# MODULO D’ORDINE FULL NON HOLDING
+${ST_INTRO}
+## ALLEGATO 1 – MODULO D’ORDINE (UTENTE)
+${bozza?'BOZZA IN REVISIONE: i clienti in regime semplificato e forfettario sono riportati in questo modulo con il compenso annuale indicato in tabella.':''}
+@tab:fullnh
+PRICING:
+COMPENSO ANNUALE : indicato in tabella per ciascun cliente attivato, + iva
+NUMERO DI DOCUMENTI DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDoc|numero]]
+COMPENSO PER DOCUMENTI EXTRA: [[fEcc|importo]] € a documento
+DECORRENZA: il corrispettivo del servizio per singolo cliente attivato decorre dal mese di attivazione per intero.`:''}
+${has.fullh?`@br
+# MODULO D’ORDINE FULL HOLDING
+${ST_INTRO}
+## ALLEGATO 1 – MODULO D’ORDINE (UTENTE)
+@tab:fullh
+PRICING:
+COMPENSO ANNUALE: indicato in tabella per ciascun cliente attivato, + iva
+NUMERO DI DOCUMENTI DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDoc|numero]]
+COMPENSO PER DOCUMENTI EXTRA: [[fEcc|importo]] € a documento
+DECORRENZA: il corrispettivo del servizio per singolo cliente attivato decorre dal mese di attivazione per intero.`:''}
+${SEPA('Yuxme S.r.l.')}
+${PRIVACY}`;
+
+const C={pmi:{user:{},auto:{},dsl:DSL_PMI,tabs:{},file:'Contratto Yuxme PMI'},st:{user:{},auto:{},dsl:'',tabs:{},file:'Contratto Yuxme'}};
+const itNum=v=>parseFloat(String(v).replace(/\./g,'').replace(',','.'));
+const NOMI={canone:'canone mensile',lFisso:'costo fisso Light',lMese:'costo fisso mensile Light',lRiga:'prezzo per riga',fOp:'costo fisso Full non holding',fOpM:'mensile Full non holding',fHold:'costo fisso Full holding',fHoldM:'mensile Full holding',fEcc:'costo per documento eccedente'};
+function sottoMinimo(c){const m=C[c].min||{}; for(const k in m){const v=itNum(cval(c,k)); if(isNaN(v)||v<m[k]-0.005)return `Nel contratto il campo "${NOMI[k]}" è sotto il minimo di ${dec(m[k])} €. Riportalo almeno a quel valore.`} return ''}
+const cval=(c,k)=>C[c].user[k]!=null?C[c].user[k]:(C[c].auto[k]||'');
+const parseDsl=s=>s.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>
+  l.startsWith('# ')?{t:'h1',x:l.slice(2)}:l.startsWith('## ')?{t:'h2',x:l.slice(3)}:l.startsWith('= ')?{t:'c',x:l.slice(2)}:
+  l.startsWith('- ')?{t:'li',x:l.slice(2)}:l.startsWith('@tab:')?{t:'tab',x:l.slice(5)}:l==='@br'?{t:'br'}:{t:'p',x:l});
+const FLD=/\[\[(\??)([a-zA-Z0-9]+)(?:\|([^\]]*))?\]\]/g;
+function htmlText(c,x){let out='',last=0,m;FLD.lastIndex=0;
+  while((m=FLD.exec(x))){out+=esc(x.slice(last,m.index));last=FLD.lastIndex;const on=!!cval(c,m[2]);
+    out+=m[1]?`<span class="chk" role="checkbox" tabindex="0" aria-checked="${on}" data-c="${c}" data-k="${m[2]}">${on?'☑':'☐'}</span>`
+      :`<span class="fld" contenteditable="true" spellcheck="false" data-c="${c}" data-k="${m[2]}" data-ph="${esc(m[3]||'')}">${esc(cval(c,m[2]))}</span>`}
+  return out+esc(x.slice(last))}
+const pdfFill=(c,x)=>pdfTxt(x.replace(FLD,(_,q,k)=>q?(cval(c,k)?'[X]':'[  ]'):(cval(c,k)||'______________')));
+const TABCOLS=['Ragione sociale','Rappresentante legale','P.Iva','Regime','Periodicità iva'];
+function renderContract(c){
+  const tag={h1:'h3',h2:'h4',c:'p',li:'li',p:'p'};
+  $('#'+c+'-contract').innerHTML=`<div class="sh-top">${LOGO_PAPER?`<img src="${LOGO_PAPER}" alt="Yuxme">`:'<span class="wm">Yuxme</span>'}</div>`+
+    parseDsl(C[c].dsl).map(b=>{
+      if(b.t==='br')return '<hr>';
+      if(b.t==='tab'){const t=C[c].tabs[b.x];return `<div class="sheetscroll"><table><thead><tr>${t.cols.map((h,i)=>`<th${i>4?' class="num"':''}>${esc(h)}</th>`).join('')}</tr></thead><tbody>${
+        t.rows.map(r=>`<tr>${r.cells.map((v,i)=>{const f=['nome','rl','pi',null,'per'][i];return f?`<td><span class="fld" contenteditable="true" spellcheck="false" data-cid="${r.id}" data-f="${f}" data-ph="${i?'…':'ragione sociale'}">${esc(v)}</span></td>`:`<td${i>4?' class="num"':''}>${esc(v)}</td>`}).join('')}</tr>`).join('')}</tbody></table></div>`}
+      return `<${tag[b.t]} class="k-${b.t}">${htmlText(c,b.x)}</${tag[b.t]}>`}).join('');
+}
+function makeContractPdf(c){
+  const {jsPDF}=window.jspdf, doc=new jsPDF({unit:'mm',format:'a4'}), M=18, W=210, TW=W-2*M; let y=18;
+  if(LOGO_PAPER){doc.addImage(LOGO_PAPER,'PNG',M,12,9*LOGO_RATIO,9);y=30}
+  const room=h=>{if(y+h>282){doc.addPage();y=20}};
+  const put=(txt,o={})=>{const size=o.size||9, lh=size*0.45, ind=o.ind||0;
+    doc.setFont('helvetica',o.bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(...(o.col||PDF_INK));
+    const ls=doc.splitTextToSize(txt,TW-ind); if(o.keep)room(lh*Math.min(ls.length,3)+8);
+    ls.forEach((l,i)=>{room(lh);if(o.bullet&&!i)doc.text('•',M+1,y);doc.text(l,o.center?W/2:M+ind,y,o.center?{align:'center'}:{});y+=lh});y+=o.gap==null?1.6:o.gap};
+  for(const b of parseDsl(C[c].dsl)){
+    if(b.t==='br'){doc.addPage();y=20}
+    else if(b.t==='h1'){y+=2;put(pdfFill(c,b.x),{bold:1,size:11.5,center:1,col:PDF_ACCENT,gap:3,keep:1})}
+    else if(b.t==='h2'){y+=1.5;put(pdfFill(c,b.x),{bold:1,size:9.5,col:PDF_ACCENT,keep:1})}
+    else if(b.t==='c')put(pdfFill(c,b.x),{bold:1,center:1,gap:2.5})
+    else if(b.t==='li')put(pdfFill(c,b.x),{ind:5,bullet:1,gap:.8})
+    else if(b.t==='tab'){const t=C[c].tabs[b.x];
+      doc.autoTable({startY:y,margin:{left:M,right:M,bottom:16,top:20},head:[t.cols],body:t.rows.map(r=>r.cells.map(pdfTxt)),
+        styles:{font:'helvetica',fontSize:7.5,cellPadding:1.6,textColor:PDF_INK,lineColor:[217,222,232],lineWidth:.1},
+        headStyles:{fillColor:PDF_ACCENT,textColor:255,fontSize:7.5},columnStyles:{5:{halign:'right'},6:{halign:'right'}}});
+      y=doc.lastAutoTable.finalY+5}
+    else put(pdfFill(c,b.x))}
+  const pages=doc.getNumberOfPages();
+  for(let i=1;i<=pages;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(...PDF_MUTED);doc.text('Yuxme S.r.l.',M,290);doc.text(`Pagina ${i} di ${pages}`,W-M,290,{align:'right'})}
+  return doc;
+}
+function contractPmi(r){
+  const a=C.pmi.auto; a.soc=$('#pmi-nome').value.trim(); C.pmi.min={canone:r.base/12}; a.canone=dec(r.netto/12); a.soglia=int(r.soglia); a.data=today(); a.sepa='1';
+  C.pmi.file='Contratto Yuxme PMI'+(a.soc?' - '+a.soc:''); renderContract('pmi');
+}
+function contractStudio(r,scPct,promoLab){
+  const a=C.st.auto, f=r.f; a.soc=$('#st-nome').value.trim(); a.data=today();
+  a.lFisso=dec(P.light.fisso); a.lMese=dec(P.light.fisso/12); a.lRiga=dec(f.prezzo);
+  const low=(t,m)=>{const v=r.rows.filter(x=>x.c.serv==='full'&&x.c.tipo===t).map(x=>x.appl); return v.length?Math.max(m,Math.min(...v)):m};
+  const vOp=low('op',P.full.op), vHold=low('hold',P.full.hold);
+  a.fOp=dec(vOp); a.fOpM=dec(vOp/12); a.fHold=dec(vHold); a.fHoldM=vHold===P.full.hold?'133,34':dec(vHold/12);
+  C.st.min={lFisso:P.light.fisso,lMese:P.light.fisso/12,lRiga:f.prezzo,fOp:P.full.op,fOpM:P.full.op/12,fHold:P.full.hold,fHoldM:133.33,fEcc:P.full.ecc};
+  const bozza=r.rows.some(x=>x.c.serv==='full'&&(x.c.tipo==='sem'||x.c.tipo==='forf')); a.fDoc=int(P.full.inclusi); a.fEcc=dec(P.full.ecc);
+  a.cond=[r.nL&&f.idx?`prezzo per riga ridotto a ${dec(f.prezzo)} € per la fascia ${f.label}`:'',r.sc?`Light Plus: sconto del ${pct(scPct)} sui corrispettivi`:'',r.promo?promoLab+', sul primo anno':''].filter(Boolean).join('; ');
+  const grp={light:x=>x.c.serv!=='full',fullnh:x=>x.c.serv==='full'&&x.c.tipo!=='hold',fullh:x=>x.c.serv==='full'&&x.c.tipo==='hold'}, has={};
+  for(const k in grp){const rows=r.rows.filter(grp[k]); has[k]=rows.length>0;
+    C.st.tabs[k]={cols:TABCOLS.concat(k==='light'?['Documenti/anno*','Stima annua']:['Documenti/anno','Compenso annuale']),
+      rows:rows.map(x=>({id:x.c.id,cells:[x.c.nome,x.c.rl||'',x.c.pi||'',TIPI[x.c.tipo]+(x.c.serv==='plus'?' (Light Plus)':''),x.c.per||'',int(x.c.docs),eur(x.appl)]}))}}
+  C.st.dsl=dslStudio(has,!!(a.cond||C.st.user.cond),bozza); C.st.file='Contratto Yuxme'+(a.soc?' - '+a.soc:''); renderContract('st');
+}
+document.addEventListener('input',e=>{const el=e.target; if(!el.classList||!el.classList.contains('fld'))return;
+  const v=el.textContent.replace(/\s+/g,' ').trim();
+  if(el.dataset.cid){const cl=S.clients.find(x=>x.id==el.dataset.cid); if(!cl)return; cl[el.dataset.f]=v;
+    if(el.dataset.f==='nome'){const i=$(`#r${cl.id}-nome`); if(i)i.value=v}; return}
+  const c=el.dataset.c,k=el.dataset.k; if(v)C[c].user[k]=v; else delete C[c].user[k];
+  document.querySelectorAll(`.fld[data-c="${c}"][data-k="${k}"]`).forEach(o=>{if(o!==el)o.textContent=v})});
+document.addEventListener('keydown',e=>{const el=e.target; if(!el.classList)return;
+  if(el.classList.contains('fld')&&e.key==='Enter'){e.preventDefault();el.blur()}
+  if(el.classList.contains('chk')&&(e.key===' '||e.key==='Enter')){e.preventDefault();el.click()}});
+document.addEventListener('paste',e=>{const el=e.target.closest&&e.target.closest('.fld'); if(!el)return; e.preventDefault();
+  document.execCommand('insertText',false,(e.clipboardData.getData('text/plain')||'').replace(/\s+/g,' '))});
+document.addEventListener('click',e=>{const el=e.target.closest('.chk'); if(!el)return; const c=el.dataset.c,k=el.dataset.k, on=!cval(c,k);
+  C[c].user[k]=on?'1':''; document.querySelectorAll(`.chk[data-c="${c}"][data-k="${k}"]`).forEach(o=>{o.textContent=on?'☑':'☐';o.setAttribute('aria-checked',on)})});
+
+/* ---------- PMI ---------- */
+const pmi={reg:'ord'};
+function renderPmi(){
+  const ovv=$('#pmi-ov').value;
+  const d={reg:pmi.reg,att:num($('#pmi-att').value),pas:num($('#pmi-pas').value),corr:$('#pmi-corr').checked,ov:ovv===''?null:num(ovv),sc:0};
+  const r=calcPmi(d), over=Math.max(0,r.docs-r.soglia);
+  $('#pmi-ov').placeholder=dec(r.base);
+  $('#pmi-fascia').textContent=`${r.nome} fino a ${int(r.soglia)} documenti`;
+  $('#pmi-sum').innerHTML=`
+    <div><span>Documenti all'anno</span><span>${int(r.docs)}</span></div>
+    <div><span>Minimo di listino</span><span>${eur(r.base)}</span></div>
+    ${d.ov!=null?`<div><span>Prezzo proposto</span><span>${eur(r.appl)}</span></div>`:''}
+    ${r.sc?`<div><span>Sconto ${pct(d.sc)}</span><span>− ${eur(r.sc)}</span></div>`:''}
+    <div><span>Eccedenza stimata (${int(over)} doc × ${eur(P.pmi.ecc)}), a consuntivo</span><span>${eur(r.ecc)}</span></div>
+    <div><span>Imponibile annuo</span><span>${eur(r.imp)}</span></div>
+    <div><span>IVA ${P.iva}%</span><span>${eur(r.iva)}</span></div>
+    <div class="tot"><span>Totale annuo</span><span>${eur(r.tot)}</span></div>
+    <div><span>Pari a, al mese (imponibile)</span><span>${eur(r.imp/12)}</span></div>`;
+  const n=[];
+  if(r.sotto)n.push(['bad',`Il prezzo proposto è ${eur(r.base-r.appl)} sotto il minimo di listino. Alzalo almeno a ${eur(r.base)} per scaricare il preventivo.`]);
+  else if(r.appl>r.base+0.005)n.push(['ok',`Prezzo proposto ${eur(r.appl-r.base)} sopra il minimo di listino.`]);
+  if(over)n.push(['warn',`I documenti superano la soglia di ${int(r.soglia)}: l'eccedenza si paga a fine anno sul consuntivo.`]);
+  else if(r.docs>=r.soglia*0.9)n.push(['warn',`Sei entro il 10% dalla soglia di ${int(r.soglia)} documenti: conviene tenersi larghi.`]);
+  $('#pmi-notes').innerHTML=n.map(x=>`<p class="${x[0]}">${x[1]}</p>`).join('');
+  const nome=$('#pmi-nome').value.trim(), prep=$('#pmi-prep').value.trim();
+  Q.pmi={file:'Preventivo Yuxme PMI'+(nome?' - '+nome:''),blocked:r.sotto,data:today(),
+    meta:[['Cliente',nome||'Da indicare'],['Servizio','Contabilità PMI'],['Regime contabile',r.nome],['Documenti all\'anno',int(r.docs)]].concat(prep?[['Preparato da',prep]]:[]),
+    cols:[{t:'Voce'},{t:'Dettaglio'},{t:'Importo annuo',r:1}],
+    rows:[['Canone annuo',`${r.nome}, fino a ${int(r.soglia)} documenti`,eur(r.appl)]].concat(over?[['Eccedenza stimata, a consuntivo',`${int(over)} documenti × ${eur(P.pmi.ecc)}`,eur(r.ecc)]]:[]),
+    totals:[].concat(r.sc?[[`Sconto ${pct(d.sc)} sul canone`,'− '+eur(r.sc)]]:[],[['Imponibile annuo',eur(r.imp)],[`IVA ${P.iva}%`,eur(r.iva)],['Totale annuo',eur(r.tot),1],['Pari a, al mese (imponibile)',eur(r.imp/12)]]),
+    notes:['Importi annui.',`Documenti = fatture attive, fatture passive e ricevute${d.corr?', più 12 documenti l\'anno per i corrispettivi':''}.`,
+      `I documenti oltre ${int(r.soglia)} costano ${eur(P.pmi.ecc)} l'uno e si calcolano a fine anno sul consuntivo.`]};
+  renderSheet('pmi-sheet',Q.pmi); syncPdfBtn('pmi'); Q['pmi-c']={blocked:r.sotto}; syncPdfBtn('pmi-c'); contractPmi(r);
+}
+$('#pmi-reg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pmi.reg=b.dataset.r;
+  $('#pmi-reg').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));renderPmi()});
+$('#v-pmi').addEventListener('input',e=>{if(!e.target.closest('.contract'))renderPmi()});
+
+/* ---------- Commercialisti ---------- */
+const S={comp:{op:{n:4,docs:750,serv:'light'},hold:{n:1,docs:120,serv:'full'},sem:{n:6,docs:350,serv:'plus'},forf:{n:3,docs:60,serv:'full'}},clients:[],seq:0};
+$('#comp').insertAdjacentHTML('beforeend',Object.keys(TIPI).map(t=>`
+  <span class="t">${TIPI[t]}</span>
+  <input id="c-${t}-n" data-t="${t}" data-k="n" type="number" min="0" inputmode="numeric" value="${S.comp[t].n}" aria-label="Quanti clienti: ${TIPI[t]}">
+  <input id="c-${t}-docs" data-t="${t}" data-k="docs" type="number" min="0" inputmode="numeric" value="${S.comp[t].docs}" aria-label="Documenti medi: ${TIPI[t]}">
+  <select class="e" id="c-${t}-serv" data-t="${t}" data-k="serv" aria-label="Esigenza: ${TIPI[t]}">${opts(ESIG,S.comp[t].serv)}</select>`).join(''));
+$('#comp').addEventListener('input',e=>{const el=e.target;if(!el.dataset.t)return;S.comp[el.dataset.t][el.dataset.k]=el.dataset.k==='serv'?el.value:num(el.value)});
+function genera(){S.clients=[];
+  for(const t of Object.keys(TIPI)){const g=S.comp[t];for(let i=1;i<=Math.min(g.n,500);i++)S.clients.push({id:++S.seq,nome:`${TIPI[t]} ${i}`,tipo:t,serv:g.serv,docs:g.docs,ov:null})}
+  renderClients()}
+function renderClients(){
+  $('#st-body').innerHTML=S.clients.map((c,i)=>`<tr data-id="${c.id}">
+    <td>${i+1}</td>
+    <td><input class="w-name" id="r${c.id}-nome" data-f="nome" type="text" value="${esc(c.nome)}" aria-label="Nome cliente"></td>
+    <td><select class="w-sel" id="r${c.id}-tipo" data-f="tipo" aria-label="Tipo">${opts(TIPI,c.tipo)}</select></td>
+    <td><select class="w-sel" id="r${c.id}-serv" data-f="serv" aria-label="Esigenza">${opts(SERV,c.serv)}</select></td>
+    <td class="num"><input class="w-num" id="r${c.id}-docs" data-f="docs" type="number" min="0" inputmode="numeric" value="${c.docs}" aria-label="Documenti all'anno"></td>
+    <td class="num" data-o="righe"></td><td class="num" data-o="listino"></td>
+    <td class="num"><input class="w-num" style="width:110px" id="r${c.id}-ov" data-f="ov" type="number" min="0" step="0.01" inputmode="decimal" value="${c.ov==null?'':c.ov}" aria-label="Importo applicato"></td>
+    <td data-o="esito"></td>
+    <td><button class="ico" type="button" data-del title="Togli il cliente" aria-label="Togli il cliente">✕</button></td></tr>`).join('')
+    ||'<tr><td colspan="10" style="padding:18px;color:var(--muted)">Nessun cliente. Compila la composizione qui sopra e premi "Crea l\'elenco clienti".</td></tr>';
+  updateStudio();
+}
+function updateStudio(){
+  const scPct=clampPct($('#st-sc').value), mesi=num($('#st-pm').value), pp=num($('#st-pp').value);
+  const r=calcStudio(S.clients,scPct,mesi,pp), n=S.clients.length, f=r.f;
+  r.rows.forEach(x=>{const tr=$(`#st-body tr[data-id="${x.c.id}"]`); if(!tr)return;
+    tr.querySelector('[data-o=righe]').textContent=x.righe==null?'–':int(x.righe);
+    tr.querySelector('[data-o=listino]').textContent=eur(x.listino);
+    tr.querySelector('[data-f=ov]').placeholder=dec(x.listino);
+    tr.querySelector('[data-o=esito]').innerHTML=x.delta<-0.005?`<span class="pill bad">Sotto listino ${eur(x.delta)}</span>`
+      :x.delta>0.005?`<span class="pill ok">Sopra listino +${eur(x.delta)}</span>`:'<span class="pill info">Listino</span>'});
+  $('#st-fascia-txt').innerHTML=r.nL?`<b>${r.nL} licenze</b> tra Light e Light Plus: fascia <b>${f.label}</b>, <b>${dec(f.prezzo)} €</b> per riga, più ${eur(P.light.fisso)} fissi per ditta.`:'Nessun cliente in Light o Light Plus: le fasce non si applicano.';
+  let from=1; $('#st-tiers').innerHTML=P.light.fasce.map((x,i)=>{const lab=x[0]==null?`oltre ${from-1}`:`${from}–${x[0]}`; if(x[0]!=null)from=x[0]+1;
+    return `<span class="${r.nL&&i===f.idx?'on':''}">${lab} · ${dec(P.light.riga*(1-x[1]/100))} €</span>`}).join('');
+  const promoLab=`Light Plus: ${mesi} ${mesi===1?'mese':'mesi'} ${pp===100?(mesi===1?'gratuito':'gratuiti'):'al 50%'}`;
+  const notes=[];
+  if(r.sotto)notes.push(['bad',`${r.sotto} ${r.sotto===1?'cliente ha':'clienti hanno'} un importo sotto il listino. Riportali almeno al listino per scaricare il preventivo.`]);
+  if((mesi||scPct)&&!r.cnt.plus)notes.push(['warn','Sconto e mesi agevolati valgono solo per i clienti in Light Plus: in elenco non ce ne sono.']);
+  if(!r.sotto&&n)notes.push(['ok','Controllo superato: nessun importo sotto il listino.']);
+  $('#st-notes').innerHTML=notes.map(x=>`<p class="${x[0]}">${x[1]}</p>`).join('');
+  $('#st-sum').innerHTML=`
+    <div><span>Clienti</span><span>${n} (${r.cnt.light} Light, ${r.cnt.plus} Light Plus, ${r.cnt.full} Full)</span></div>
+    <div><span>Totale a listino</span><span>${eur(r.lis)}</span></div>
+    <div><span>Totale importi applicati</span><span>${eur(r.app)}</span></div>
+    ${r.sc?`<div><span>Light Plus: sconto ${pct(scPct)}</span><span>− ${eur(r.sc)}</span></div>`:''}
+    ${r.promo?`<div><span>${promoLab}</span><span>− ${eur(r.promo)}</span></div>`:''}
+    <div><span>Imponibile ${r.promo?'primo anno':'annuo'}</span><span>${eur(r.primo)}</span></div>
+    <div><span>IVA ${P.iva}%</span><span>${eur(r.iva)}</span></div>
+    <div class="tot"><span>Totale ${r.promo?'primo anno':'annuo'}</span><span>${eur(r.tot)}</span></div>
+    ${r.promo?`<div><span>Imponibile dal secondo anno</span><span>${eur(r.regime)}</span></div>`:''}
+    <div><span>Media per cliente (imponibile)</span><span>${eur(n?r.primo/n:0)}</span></div>`;
+  const nome=$('#st-nome').value.trim(), prep=$('#st-prep').value.trim();
+  Q.st={file:'Preventivo Yuxme'+(nome?' - '+nome:''),blocked:r.sotto>0||!n,data:today(),
+    meta:[['Studio',nome||'Da indicare'],['Clienti',`${n} (${r.cnt.light} Light, ${r.cnt.plus} Light Plus, ${r.cnt.full} Full Assistance)`]]
+      .concat(r.nL?[['Fascia Light',`${f.label}: ${dec(f.prezzo)} € per riga`]]:[],prep?[['Preparato da',prep]]:[]),
+    cols:[{t:'#'},{t:'Cliente'},{t:'Regime'},{t:'Servizio'},{t:'Documenti/anno',r:1},{t:'Importo annuo',r:1}],
+    rows:r.rows.map((x,i)=>[String(i+1),x.c.nome,TIPI[x.c.tipo],SERV[x.c.serv],int(x.c.docs),eur(x.appl)]),
+    totals:[['Totale',eur(r.app)]].concat(r.sc?[[`Light Plus: sconto ${pct(scPct)}`,'− '+eur(r.sc)]]:[],r.promo?[[promoLab,'− '+eur(r.promo)]]:[],
+      [[`Imponibile ${r.promo?'primo anno':'annuo'}`,eur(r.primo)],[`IVA ${P.iva}%`,eur(r.iva)],[`Totale ${r.promo?'primo anno':'annuo'}`,eur(r.tot),1]],
+      r.promo?[['Imponibile dal secondo anno',eur(r.regime)]]:[]),
+    notes:['Importi annui.'].concat(
+      r.nL?[`Light e Light Plus: ${eur(P.light.fisso)} l'anno per ditta più una quota per riga di libro giornale. Le righe sono stimate: documenti × ${P.light.mOrd} per le ordinarie, × ${P.light.mSem} per le semplificate. Il conteggio definitivo avviene sulle righe effettive.`]:[],
+      r.cnt.full?[`Full Assistance: fino a ${int(P.full.inclusi)} documenti l'anno per cliente; oltre, ${eur(P.full.ecc)} a documento, a consuntivo.`]:[],
+      r.promo?['I mesi agevolati del Light Plus valgono sul primo anno.']:[],r.sc?['Lo sconto si applica ai soli clienti in Light Plus.']:[])};
+  renderSheet('st-sheet',Q.st); syncPdfBtn('st'); Q['st-c']={blocked:Q.st.blocked}; syncPdfBtn('st-c'); contractStudio(r,scPct,promoLab);
+}
+$('#st-body').addEventListener('input',e=>{const el=e.target, tr=el.closest('tr'); if(!tr||!el.dataset.f)return;
+  const c=S.clients.find(x=>x.id==tr.dataset.id), k=el.dataset.f;
+  c[k]=k==='docs'?num(el.value):k==='ov'?(el.value===''?null:num(el.value)):el.value; updateStudio()});
+$('#st-body').addEventListener('click',e=>{const b=e.target.closest('[data-del]'); if(!b)return;
+  S.clients=S.clients.filter(x=>x.id!=b.closest('tr').dataset.id); renderClients()});
+$('#st-gen').addEventListener('click',genera);
+$('#st-add').addEventListener('click',()=>{S.clients.push({id:++S.seq,nome:`Cliente ${S.clients.length+1}`,tipo:'op',serv:'light',docs:500,ov:null});renderClients()});
+['st-sc','st-pm','st-pp','st-nome','st-prep'].forEach(i=>$('#'+i).addEventListener('input',updateStudio));
+
+/* ---------- PDF ---------- */
+function syncPdfBtn(k){const b=$(`[data-pdf="${k}"]`); b.disabled=!!Q[k].blocked;}
+function pdfMsg(k,t){const m=$(`[data-pdfmsg="${k}"]`); m.textContent=t; m.hidden=!t}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-pdf]'); if(!b||b.disabled)return; const k=b.dataset.pdf;
+  pdfMsg(k,'');
+  try{
+    const con=k.endsWith('-c'), key=con?k.slice(0,-2):k; if(con){const err=sottoMinimo(key); if(err){pdfMsg(k,err);return}} const doc=con?makeContractPdf(key):makePdf(Q[k]);
+    const name=(con?C[key].file:Q[k].file).replace(/[\\/:*?"<>|]/g,' ')+'.pdf';
+    if(!(window.claude&&window.claude.use)){doc.save(name);pdfMsg(k,'PDF scaricato.');return}
+    const dl=await window.claude.use('downloads');
+    if(!dl){pdfMsg(k,'Da questa vista il download non è disponibile. Apri la pagina su claude.ai e riprova.');return}
+    await dl.save({filename:name,data:doc.output('arraybuffer')});
+    pdfMsg(k,'PDF salvato.');
+  }catch(err){pdfMsg(k,err&&err.code==='declined'?'Download annullato.':err&&err.code==='rate_limited'?'C\'è già una richiesta di download aperta: confermala o riprova tra poco.':'Non sono riuscito a creare il PDF. Riprova.')}
+});
+
+/* ---------- Listino in sola lettura ---------- */
+const ro=(id,rows)=>$('#'+id).innerHTML=rows.map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join('');
+ro('l-pmi',[[`Ordinaria fino a ${int(P.pmi.ord1Max)} documenti`,eur(P.pmi.ord1)],[`Ordinaria fino a ${int(P.pmi.ord2Max)} documenti`,eur(P.pmi.ord2)],[`Semplificata fino a ${int(P.pmi.semMax)} documenti`,eur(P.pmi.sem)],['Documento oltre soglia, a consuntivo',eur(P.pmi.ecc)],['Corrispettivi','12 documenti l\'anno'],['Regola','Prezzi minimi: si può salire, mai scendere']]);
+ro('l-full',[['Ordinaria operativa',eur(P.full.op)],['Ordinaria holding',eur(P.full.hold)],['Semplificata (bozza, in revisione)',eur(P.full.sem)],['Forfettaria (bozza, in revisione)',eur(P.full.forf)],['Documenti inclusi per cliente',int(P.full.inclusi)],['Documento oltre soglia, a consuntivo',eur(P.full.ecc)],['Regola','Prezzi minimi: si può salire, mai scendere']]);
+ro('l-light',[['Canone fisso per ditta',eur(P.light.fisso)],['Prezzo base per riga',eur(P.light.riga)],['Righe per documento, ordinarie','× '+P.light.mOrd],['Righe per documento, semplificate','× '+P.light.mSem],['Righe per documento, forfettarie','× '+P.light.mForf],['Light Plus','Come il Light, con sconto % e 1–3 mesi al 50% o gratuiti'],['Regola','Prezzi minimi: si può salire, mai scendere']]);
+{let from=1; ro('l-fasce',P.light.fasce.map(x=>{const lab=x[0]==null?`Oltre ${from-1} licenze`:`Da ${from} a ${x[0]} licenze`; if(x[0]!=null)from=x[0]+1; return [lab,`${dec(P.light.riga*(1-x[1]/100))} € per riga (−${x[1]}%)`]}))}
+
+/* ---------- guida animata ---------- */
+const SCENES=[
+ ['Scegli il canale','<div class="mk-row"><div class="mk-card hot">PMI</div><div class="mk-card">Commercialisti</div></div>'],
+ ['Inserisci regime e fatture','<span class="mk-pill">Ordinaria</span><div class="mk-row"><label class="mk-f">Fatture attive all\'anno<i class="hot" data-type="320"></i></label><label class="mk-f">Fatture passive all\'anno<i class="hot" data-type="410" data-delay="900"></i></label></div>'],
+ ['Leggi il conto','<span class="mk-pill">Ordinaria fino a 1.500 documenti</span><div class="mk-tot"><span>Totale annuo, IVA inclusa</span><b data-count="4026"></b></div>'],
+ ['Alza il prezzo, se serve','<div class="mk-row"><label class="mk-f">Minimo di listino<i>3.300,00</i></label><label class="mk-f">Prezzo proposto, dal minimo in su<i class="hot" data-type="3.500,00"></i></label></div>'],
+ ['Scarica il preventivo','<div class="mk-btn">Scarica il PDF</div><div class="mk-pdf">Preventivo Yuxme PMI - Rossi Srl.pdf</div>'],
+ ['Completa il contratto e scaricalo','<div class="mk-row"><label class="mk-f">Canone mensile, già compilato<i>275,00</i></label><label class="mk-f">Il sottoscritto Sig.<i class="hot" data-type="Mario Rossi"></i></label></div><div class="mk-btn">Scarica il contratto in PDF</div>']];
+let demoI=0, demoT=null, demoOn=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+$('#demo-dots').innerHTML=SCENES.map((x,i)=>`<button type="button" data-i="${i}" aria-label="Passaggio ${i+1}: ${x[0]}"></button>`).join('');
+function demoShow(i){demoI=(i+SCENES.length)%SCENES.length; const st=$('#demo-stage');
+  $('#demo-n').textContent=`Passaggio ${demoI+1} di ${SCENES.length}`; $('#demo-t').textContent=SCENES[demoI][0]; st.innerHTML=SCENES[demoI][1];
+  $('#demo-dots').querySelectorAll('button').forEach((b,j)=>b.classList.toggle('on',j===demoI));
+  st.querySelectorAll('[data-type]').forEach(el=>{const t=el.dataset.type; if(!demoOn){el.textContent=t;return}
+    let n=0; setTimeout(function tick(){if(!el.isConnected)return; el.textContent=t.slice(0,++n); if(n<t.length)setTimeout(tick,90)},+(el.dataset.delay||300))});
+  st.querySelectorAll('[data-count]').forEach(el=>{const to=+el.dataset.count; if(!demoOn){el.textContent=eur(to);return}
+    const t0=performance.now(); (function f(now){if(!el.isConnected)return; const k=Math.min(1,(now-t0)/1100); el.textContent=eur(to*(1-Math.pow(1-k,3))); if(k<1)requestAnimationFrame(f)})(t0)});
+  clearTimeout(demoT); if(demoOn)demoT=setTimeout(()=>demoShow(demoI+1),3600)}
+$('#demo-dots').addEventListener('click',e=>{const b=e.target.closest('button'); if(b)demoShow(+b.dataset.i)});
+$('#demo-pp').textContent=demoOn?'Pausa':'Riproduci';
+$('#demo-pp').addEventListener('click',()=>{demoOn=!demoOn; $('#demo-pp').textContent=demoOn?'Pausa':'Riproduci'; demoShow(demoI)});
+demoShow(0);
+
+/* ---------- navigazione ---------- */
+if(LOGO_HEADER)$('#brandmark').innerHTML=`<img src="${LOGO_HEADER}" alt="Yuxme">`;
+const VIEWS=['home','pmi','commercialisti','guida','listino'];
+function route(){const v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):'home';
+  VIEWS.forEach(x=>$('#v-'+x).hidden=x!==v);
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===v)); window.scrollTo(0,0)}
+window.addEventListener('hashchange',route);
+renderPmi(); genera(); route();
+</script>
+
+</body>
+</html>
