@@ -198,7 +198,7 @@ input.bad,td input.bad{border-color:var(--bad);background:var(--bad-soft);color:
   <p class="lead">Scegli il canale, inserisci pochi numeri e scarica il preventivo già impaginato.</p>
   <div class="choices">
     <a class="choice" href="#pmi"><b>PMI</b><small>Regime contabile e numero di fatture: ottieni canone annuo, eccedenza stimata e totale.</small><em>Preventivo PMI</em></a>
-    <a class="choice" href="#commercialisti"><b>Commercialisti</b><small>Parti da quanti clienti ha lo studio e da cosa vuole delegare: ottieni un prezzo per cliente, con sconti e totale.</small><em>Preventivo studio</em></a>
+    <a class="choice" href="#commercialisti"><b>Commercialisti</b><small>Parti da quanti clienti ha lo studio e da cosa vuole delegare: ottieni il prezzo per tipo di cliente, con sconti e totale.</small><em>Preventivo studio</em></a>
   </div>
   <p class="minor">Prima volta? <a href="#guida">Guarda la guida animata</a>. I prezzi di listino sono fissi: <a href="#listino">consulta listino e regole</a>.</p>
 </section>
@@ -260,17 +260,17 @@ input.bad,td input.bad{border-color:var(--bad);background:var(--bad-soft);color:
       <span class="h">Tipo di cliente</span><span class="h">Quanti</span><span class="h">Documenti/anno (media)</span><span class="h">Esigenza dello studio</span>
     </div>
     <div class="row">
-      <button class="btn" type="button" id="st-gen">Crea l'elenco clienti</button>
-      <button class="btn ghost" type="button" id="st-add">Aggiungi un cliente</button>
-      <span class="hint">"Crea" sostituisce l'elenco qui sotto. I numeri già inseriti sono un esempio.</span>
+      <button class="btn" type="button" id="st-gen">Crea il preventivo</button>
+      <button class="btn ghost" type="button" id="st-add">Aggiungi una riga</button>
+      <span class="hint">"Crea" sostituisce le righe qui sotto. I numeri già inseriti sono un esempio.</span>
     </div>
   </div>
 
   <div class="card">
-    <h2>2. Prezzo per cliente</h2>
-    <p class="hint">Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate, × 1 per le forfettarie. L'importo si può alzare sopra il listino; campo vuoto = listino.</p>
+    <h2>2. Prezzo per tipo di cliente</h2>
+    <p class="hint">Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate, × 1 per le forfettarie. Documenti, righe e importi sono per singolo cliente; il totale moltiplica per il numero di clienti. L'importo si può alzare sopra il listino; campo vuoto = listino.</p>
     <div class="scroll"><table>
-      <thead><tr><th>#</th><th>Cliente</th><th>Tipo</th><th>Esigenza</th><th class="num">Documenti</th><th class="num">Righe stimate</th><th class="num">Listino</th><th class="num">Importo applicato</th><th>Controllo</th><th></th></tr></thead>
+      <thead><tr><th class="num">Quanti</th><th>Tipo di cliente</th><th>Esigenza</th><th class="num">Documenti/anno</th><th class="num">Righe stimate</th><th class="num">Listino per cliente</th><th class="num">Importo per cliente</th><th class="num">Totale</th><th>Controllo</th><th></th></tr></thead>
       <tbody id="st-body"></tbody>
     </table></div>
     <div class="notes" id="st-err" role="alert"></div>
@@ -330,12 +330,12 @@ input.bad,td input.bad{border-color:var(--bad);background:var(--bad-soft);color:
     <div class="card"><h2>Preventivo studio commercialista</h2><ol class="steps">
       <li><b>Apri Commercialisti</b>.</li>
       <li><b>Componi lo studio</b>: per ogni tipo di cliente indica quanti sono, i documenti medi all'anno e l'esigenza (Light, Light Plus o Full).</li>
-      <li><b>Crea l'elenco clienti</b>: esce una riga per cliente. Puoi rinominarla, cambiare tipo, esigenza e documenti, toglierla o aggiungerne altre.</li>
-      <li><b>Importo applicato</b>: vuoto vale il listino; puoi alzarlo. Il controllo a destra segnala se sei sotto o sopra.</li>
+      <li><b>Crea il preventivo</b>: esce una riga per tipo di cliente, senza bisogno dei nomi. Puoi cambiare quantità, tipo, esigenza e documenti, togliere la riga o aggiungerne altre (per esempio per dividere le ordinarie tra Light e Full).</li>
+      <li><b>Importo per cliente</b>: vuoto vale il listino; puoi alzarlo. Sotto il listino la cella diventa rossa e l'importo torna al minimo.</li>
       <li><b>Fascia Light</b>: si aggiorna da sola in base al numero di licenze Light e Light Plus.</li>
       <li><b>Sconti</b>: esistono solo per il Light Plus. Scegli lo sconto % e 1, 2 o 3 mesi al 50% o gratuiti.</li>
       <li><b>Scarica il PDF</b> del preventivo.</li>
-      <li><b>Contratto studio</b>: prezzi, condizioni particolari e moduli d'ordine con l'elenco clienti sono già compilati. Completa i campi evidenziati e scarica il contratto.</li>
+      <li><b>Contratto studio</b>: prezzi e condizioni particolari sono già compilati; nei moduli d'ordine c'è una riga per ogni cliente, da completare con ragione sociale e dati quando li hai.</li>
     </ol></div>
   </div>
 </section>
@@ -408,14 +408,14 @@ function calcPmi(d){
   return {docs,base,soglia,nome,ecc,appl,sc,netto,imp,iva,tot:imp+iva,sotto:appl<base-0.005};
 }
 function calcStudio(clients,scPct,mesi,promoPct){
-  const nL=clients.filter(c=>c.serv!=='full').length, f=fascia(nL);
-  let lis=0,app=0,plusApp=0,sotto=0; const cnt={light:0,plus:0,full:0};
-  const rows=clients.map(c=>{const r=prezzoCliente(c,f.prezzo), a=c.ov==null?r.listino:c.ov, d=a-r.listino;
-    lis+=r.listino; app+=a; cnt[c.serv]++; if(c.serv==='plus')plusApp+=a; if(d<-0.005)sotto++;
-    return {c,righe:r.righe,listino:r.listino,appl:a,delta:d}});
+  const q=c=>Math.max(0,Math.round(c.n==null?1:c.n)), nL=clients.reduce((a,c)=>a+(c.serv!=='full'?q(c):0),0), f=fascia(nL);
+  let lis=0,app=0,plusApp=0,sotto=0,n=0; const cnt={light:0,plus:0,full:0};
+  const rows=clients.map(c=>{const r=prezzoCliente(c,f.prezzo), a=c.ov==null?r.listino:c.ov, d=a-r.listino, k=q(c);
+    lis+=r.listino*k; app+=a*k; cnt[c.serv]+=k; n+=k; if(c.serv==='plus')plusApp+=a*k; if(d<-0.005&&k)sotto++;
+    return {c,q:k,righe:r.righe,listino:r.listino,appl:a,delta:d}});
   const sc=plusApp*scPct/100, regime=app-sc;
   const promo=plusApp*(1-scPct/100)/12*mesi*promoPct/100, primo=regime-promo, iva=primo*P.iva/100;
-  return {nL,f,rows,lis,app,cnt,sotto,sc,regime,promo,primo,iva,tot:primo+iva};
+  return {n,nL,f,rows,lis,app,cnt,sotto,sc,regime,promo,primo,iva,tot:primo+iva};
 }
 
 /* ---------- foglio del preventivo (anteprima e PDF dallo stesso modello) ---------- */
@@ -768,7 +768,7 @@ function normVal(t,v){v=v.trim(); if(t==='cf'||t==='cfpiva'||t==='piva')return v
 function checkVal(t,v){if(!v||!t)return ''; return t==='date'?vDate(v):t==='piva'?vPiva(v):t==='cf'?vCf(v):t==='iban'?vIban(v.replace(/\s/g,'')):/^\d/.test(v)?vPiva(v):vCf(v)}
 function contractErrors(c){const out=[]; const u=C[c].user;
   for(const k in u){const e=checkVal(ftype(c,k),u[k]); if(e)out.push({k,e})}
-  if(c==='st')S.clients.forEach(cl=>{const e=checkVal('piva',cl.pi||''); if(e)out.push({cid:cl.id,e:`${cl.nome}: ${e}`})});
+  if(c==='st')S.clients.forEach(g=>{for(let i=0;i<Math.min(g.n,g.units.length);i++){const u=g.units[i]||{}, e=checkVal('piva',u.pi||''); if(e)out.push({cid:g.id+'_'+i,e:`${u.nome||TIPI[g.tipo]+' '+(i+1)}: ${e}`})}});
   const m=sottoMinimo(c); if(m)out.push({e:m}); return out}
 function showContractErrors(c){const errs=contractErrors(c);
   $('#'+c+'-cerr').innerHTML=errs.map(x=>`<p class="bad">${esc(x.e)}</p>`).join('');
@@ -891,26 +891,27 @@ function contractPmi(r){
 function contractStudio(r,scPct,promoLab){
   const a=C.st.auto, f=r.f; a.soc=$('#st-nome').value.trim(); a.data=today();
   a.lFisso=dec(P.light.fisso); a.lMese=dec(P.light.fisso/12); a.lRiga=dec(f.prezzo);
-  const low=(t,m)=>{const v=r.rows.filter(x=>x.c.serv==='full'&&x.c.tipo===t).map(x=>x.appl); return v.length?Math.max(m,Math.min(...v)):m};
+  const low=(t,m)=>{const v=r.rows.filter(x=>x.q&&x.c.serv==='full'&&x.c.tipo===t).map(x=>x.appl); return v.length?Math.max(m,Math.min(...v)):m};
   const vOp=low('op',P.full.op), vHold=low('hold',P.full.hold);
   a.fOp=dec(vOp); a.fOpM=dec(vOp/12); a.fHold=dec(vHold); a.fHoldM=vHold===P.full.hold?'133,34':dec(vHold/12);
   C.st.min={lFisso:P.light.fisso,lMese:P.light.fisso/12,lRiga:f.prezzo,fOp:P.full.op,fOpM:P.full.op/12,fHold:P.full.hold,fHoldM:133.33,fEcc:P.full.ecc};
-  const bozza=r.rows.some(x=>x.c.serv==='full'&&(x.c.tipo==='sem'||x.c.tipo==='forf')); a.fDoc=int(P.full.inclusi); a.fEcc=dec(P.full.ecc);
+  const bozza=r.rows.some(x=>x.q&&x.c.serv==='full'&&(x.c.tipo==='sem'||x.c.tipo==='forf')); a.fDoc=int(P.full.inclusi); a.fEcc=dec(P.full.ecc);
   a.cond=[r.nL&&f.idx?`prezzo per riga ridotto a ${dec(f.prezzo)} € per la fascia ${f.label}`:'',r.sc?`Light Plus: sconto del ${pct(scPct)} sui corrispettivi`:'',r.promo?promoLab+', sul primo anno':''].filter(Boolean).join('; ');
   const grp={light:x=>x.c.serv!=='full',fullnh:x=>x.c.serv==='full'&&x.c.tipo!=='hold',fullh:x=>x.c.serv==='full'&&x.c.tipo==='hold'}, has={};
-  for(const k in grp){const rows=r.rows.filter(grp[k]); has[k]=rows.length>0;
-    C.st.tabs[k]={cols:TABCOLS.concat(k==='light'?['Documenti/anno*','Stima annua']:['Documenti/anno','Compenso annuale']),
-      rows:rows.map(x=>({id:x.c.id,cells:[x.c.nome,x.c.rl||'',x.c.pi||'',TIPI[x.c.tipo]+(x.c.serv==='plus'?' (Light Plus)':''),x.c.per||'',int(x.c.docs),eur(x.appl)]}))}}
+  for(const k in grp){const rows=[]; r.rows.filter(grp[k]).forEach(x=>{for(let i=0;i<x.q;i++){const u=x.c.units[i]||(x.c.units[i]={});
+      rows.push({id:x.c.id+'_'+i,cells:[u.nome||'',u.rl||'',u.pi||'',TIPI[x.c.tipo]+(x.c.serv==='plus'?' (Light Plus)':''),u.per||'',int(x.c.docs),eur(x.appl)]})}});
+    has[k]=rows.length>0;
+    C.st.tabs[k]={cols:TABCOLS.concat(k==='light'?['Documenti/anno*','Stima annua']:['Documenti/anno','Compenso annuale']),rows}}
   C.st.dsl=dslStudio(has,!!(a.cond||C.st.user.cond),bozza); C.st.file='Contratto Yuxme'+(a.soc?' - '+a.soc:''); renderContract('st');
 }
+function unitOf(cid){const [g,i]=String(cid).split('_'), gr=S.clients.find(x=>x.id==g); return gr?(gr.units[+i]||(gr.units[+i]={})):null}
 function syncFields(c,except){document.querySelectorAll(`#${c}-contract .fld[data-k]`).forEach(o=>{if(o!==except){const v=cval(c,o.dataset.k); if(o.textContent!==v)o.textContent=v}})}
 document.addEventListener('input',e=>{const el=e.target; if(!el.classList||!el.classList.contains('fld'))return;
   const v=el.textContent.replace(/\s+/g,' ').trim();
-  if(el.dataset.cid){const cl=S.clients.find(x=>x.id==el.dataset.cid); if(!cl)return; cl[el.dataset.f]=v;
-    if(el.dataset.f==='nome'){const i=$(`#r${cl.id}-nome`); if(i)i.value=v}; return}
+  if(el.dataset.cid){const u=unitOf(el.dataset.cid); if(u)u[el.dataset.f]=v; return}
   const c=el.dataset.c,k=el.dataset.k; if(v)C[c].user[k]=v; else delete C[c].user[k]; syncFields(c,el)});
 document.addEventListener('focusout',e=>{const el=e.target; if(!el.classList||!el.classList.contains('fld'))return;
-  if(el.dataset.cid){const cl=S.clients.find(x=>x.id==el.dataset.cid); if(cl&&el.dataset.f==='pi'){cl.pi=normVal('piva',cl.pi||''); el.textContent=cl.pi} showContractErrors('st'); return}
+  if(el.dataset.cid){const u=unitOf(el.dataset.cid); if(u&&el.dataset.f==='pi'){u.pi=normVal('piva',u.pi||''); el.textContent=u.pi} showContractErrors('st'); return}
   const c=el.dataset.c,k=el.dataset.k,t=ftype(c,k);
   if(C[c].user[k]!=null&&t){C[c].user[k]=normVal(t,C[c].user[k]); el.textContent=C[c].user[k]}
   if(C[c].min&&C[c].min[k]!=null&&C[c].user[k]!=null&&!(itNum(C[c].user[k])>=C[c].min[k]-0.005)){
@@ -974,28 +975,28 @@ $('#comp').insertAdjacentHTML('beforeend',Object.keys(TIPI).map(t=>`
   <select class="e" id="c-${t}-serv" data-t="${t}" data-k="serv" aria-label="Esigenza: ${TIPI[t]}">${opts(ESIG,S.comp[t].serv)}</select>`).join(''));
 $('#comp').addEventListener('input',e=>{const el=e.target;if(!el.dataset.t)return;S.comp[el.dataset.t][el.dataset.k]=el.dataset.k==='serv'?el.value:num(el.value)});
 function genera(){S.clients=[];
-  for(const t of Object.keys(TIPI)){const g=S.comp[t];for(let i=1;i<=Math.min(g.n,500);i++)S.clients.push({id:++S.seq,nome:`${TIPI[t]} ${i}`,tipo:t,serv:g.serv,docs:g.docs,ov:null})}
+  for(const t of Object.keys(TIPI)){const g=S.comp[t]; if(g.n>0)S.clients.push({id:++S.seq,tipo:t,serv:g.serv,n:Math.min(Math.round(g.n),500),docs:g.docs,ov:null,units:[]})}
   renderClients()}
 function renderClients(){
-  $('#st-body').innerHTML=S.clients.map((c,i)=>`<tr data-id="${c.id}">
-    <td>${i+1}</td>
-    <td><input class="w-name" id="r${c.id}-nome" data-f="nome" type="text" value="${esc(c.nome)}" aria-label="Nome cliente"></td>
-    <td><select class="w-sel" id="r${c.id}-tipo" data-f="tipo" aria-label="Tipo">${opts(TIPI,c.tipo)}</select></td>
+  $('#st-body').innerHTML=S.clients.map(c=>`<tr data-id="${c.id}">
+    <td class="num"><input class="w-num" style="width:70px" id="r${c.id}-n" data-f="n" type="number" min="0" max="500" inputmode="numeric" value="${c.n}" aria-label="Quanti clienti"></td>
+    <td><select class="w-sel" id="r${c.id}-tipo" data-f="tipo" aria-label="Tipo di cliente">${opts(TIPI,c.tipo)}</select></td>
     <td><select class="w-sel" id="r${c.id}-serv" data-f="serv" aria-label="Esigenza">${opts(SERV,c.serv)}</select></td>
-    <td class="num"><input class="w-num" id="r${c.id}-docs" data-f="docs" type="number" min="0" inputmode="numeric" value="${c.docs}" aria-label="Documenti all'anno"></td>
+    <td class="num"><input class="w-num" id="r${c.id}-docs" data-f="docs" type="number" min="0" inputmode="numeric" value="${c.docs}" aria-label="Documenti all'anno per cliente"></td>
     <td class="num" data-o="righe"></td><td class="num" data-o="listino"></td>
-    <td class="num"><input class="w-num" style="width:110px" id="r${c.id}-ov" data-f="ov" type="number" min="0" step="0.01" inputmode="decimal" value="${c.ov==null?'':c.ov}" aria-label="Importo applicato"></td>
+    <td class="num"><input class="w-num" style="width:110px" id="r${c.id}-ov" data-f="ov" type="number" min="0" step="0.01" inputmode="decimal" value="${c.ov==null?'':c.ov}" aria-label="Importo per cliente"></td>
+    <td class="num" data-o="tot"></td>
     <td data-o="esito"></td>
-    <td><button class="ico" type="button" data-del title="Togli il cliente" aria-label="Togli il cliente">✕</button></td></tr>`).join('')
-    ||'<tr><td colspan="10" style="padding:18px;color:var(--muted)">Nessun cliente. Compila la composizione qui sopra e premi "Crea l\'elenco clienti".</td></tr>';
+    <td><button class="ico" type="button" data-del title="Togli la riga" aria-label="Togli la riga">✕</button></td></tr>`).join('')
+    ||'<tr><td colspan="10" style="padding:18px;color:var(--muted)">Nessuna riga. Compila la composizione qui sopra e premi "Crea il preventivo".</td></tr>';
   updateStudio();
 }
 function updateStudio(){
   const scPct=clampPct($('#st-sc').value), mesi=num($('#st-pm').value), pp=num($('#st-pp').value);
-  const r=calcStudio(S.clients,scPct,mesi,pp), n=S.clients.length, f=r.f;
+  const r=calcStudio(S.clients,scPct,mesi,pp), n=r.n, f=r.f;
   r.rows.forEach(x=>{const tr=$(`#st-body tr[data-id="${x.c.id}"]`); if(!tr)return;
     tr.querySelector('[data-o=righe]').textContent=x.righe==null?'–':int(x.righe);
-    tr.querySelector('[data-o=listino]').textContent=eur(x.listino);
+    tr.querySelector('[data-o=listino]').textContent=eur(x.listino); tr.querySelector('[data-o=tot]').textContent=eur(x.appl*x.q);
     {const i=tr.querySelector('[data-f=ov]'); i.placeholder=dec(x.listino); i.dataset.min=x.listino; i.classList.toggle('bad',x.delta<-0.005)}
     tr.querySelector('[data-o=esito]').innerHTML=x.delta<-0.005?`<span class="pill bad">Sotto listino ${eur(x.delta)}</span>`
       :x.delta>0.005?`<span class="pill ok">Sopra listino +${eur(x.delta)}</span>`:'<span class="pill info">Listino</span>'});
@@ -1004,7 +1005,7 @@ function updateStudio(){
     return `<span class="${r.nL&&i===f.idx?'on':''}">${lab} · ${dec(P.light.riga*(1-x[1]/100))} €</span>`}).join('');
   const promoLab=`Light Plus: ${mesi} ${mesi===1?'mese':'mesi'} ${pp===100?(mesi===1?'gratuito':'gratuiti'):'al 50%'}`;
   const notes=[];
-  if(r.sotto)notes.push(['bad',`${r.sotto} ${r.sotto===1?'cliente ha':'clienti hanno'} un importo sotto il listino. Riportali almeno al listino per scaricare il preventivo.`]);
+  if(r.sotto)notes.push(['bad',`${r.sotto} ${r.sotto===1?'riga ha':'righe hanno'} un importo sotto il listino. Riportale almeno al listino per scaricare il preventivo.`]);
   if((mesi||scPct)&&!r.cnt.plus)notes.push(['warn','Sconto e mesi agevolati valgono solo per i clienti in Light Plus: in elenco non ce ne sono.']);
   if(!r.sotto&&n)notes.push(['ok','Controllo superato: nessun importo sotto il listino.']);
   $('#st-notes').innerHTML=notes.map(x=>`<p class="${x[0]}">${x[1]}</p>`).join('');
@@ -1023,8 +1024,8 @@ function updateStudio(){
   Q.st={file:'Preventivo Yuxme'+(nome?' - '+nome:''),blocked:r.sotto>0||!n,data:today(),
     meta:[['Studio',nome||'Da indicare'],['Clienti',`${n} (${r.cnt.light} Light, ${r.cnt.plus} Light Plus, ${r.cnt.full} Full Assistance)`]]
       .concat(r.nL?[['Fascia Light',`${f.label}: ${dec(f.prezzo)} € per riga`]]:[],prep?[['Preparato da',prep]]:[]),
-    cols:[{t:'#'},{t:'Cliente'},{t:'Regime'},{t:'Servizio'},{t:'Documenti/anno',r:1},{t:'Importo annuo',r:1}],
-    rows:r.rows.map((x,i)=>[String(i+1),x.c.nome,TIPI[x.c.tipo],SERV[x.c.serv],int(x.c.docs),eur(x.appl)]),
+    cols:[{t:'Clienti',r:1},{t:'Tipo di cliente'},{t:'Servizio'},{t:'Documenti/anno per cliente',r:1},{t:'Importo annuo per cliente',r:1},{t:'Totale annuo',r:1}],
+    rows:r.rows.filter(x=>x.q).map(x=>[String(x.q),TIPI[x.c.tipo],SERV[x.c.serv],int(x.c.docs),eur(x.appl),eur(x.appl*x.q)]),
     totals:[['Totale',eur(r.app)]].concat(r.sc?[[`Light Plus: sconto ${pct(scPct)}`,'− '+eur(r.sc)]]:[],r.promo?[[promoLab,'− '+eur(r.promo)]]:[],
       [[`Imponibile ${r.promo?'primo anno':'annuo'}`,eur(r.primo)],[`IVA ${P.iva}%`,eur(r.iva)],[`Totale ${r.promo?'primo anno':'annuo'}`,eur(r.tot),1]],
       r.promo?[['Imponibile dal secondo anno',eur(r.regime)]]:[]),
@@ -1036,15 +1037,15 @@ function updateStudio(){
 }
 $('#st-body').addEventListener('input',e=>{const el=e.target, tr=el.closest('tr'); if(!tr||!el.dataset.f)return;
   const c=S.clients.find(x=>x.id==tr.dataset.id), k=el.dataset.f;
-  c[k]=k==='docs'?num(el.value):k==='ov'?(el.value===''?null:num(el.value)):el.value; updateStudio()});
+  c[k]=k==='docs'?num(el.value):k==='n'?Math.min(500,Math.max(0,Math.round(num(el.value)))):k==='ov'?(el.value===''?null:num(el.value)):el.value; updateStudio()});
 $('#st-body').addEventListener('change',e=>{const el=e.target; if(el.dataset.f!=='ov'||el.value==='')return; const min=+el.dataset.min;
   if(num(el.value)<min-0.005){const c=S.clients.find(x=>x.id==el.closest('tr').dataset.id);
-    $('#st-err').innerHTML=`<p class="bad">Errore: ${esc(c.nome)}, ${eur(num(el.value))} è sotto il listino. Ho riportato l'importo a ${eur(min)}: si può solo alzare.</p>`; c.ov=null; el.value=''; updateStudio()}
+    $('#st-err').innerHTML=`<p class="bad">Errore: ${TIPI[c.tipo]} in ${SERV[c.serv]}, ${eur(num(el.value))} è sotto il listino. Ho riportato l'importo a ${eur(min)}: si può solo alzare.</p>`; c.ov=null; el.value=''; updateStudio()}
   else $('#st-err').innerHTML=''});
 $('#st-body').addEventListener('click',e=>{const b=e.target.closest('[data-del]'); if(!b)return;
   S.clients=S.clients.filter(x=>x.id!=b.closest('tr').dataset.id); renderClients()});
 $('#st-gen').addEventListener('click',genera);
-$('#st-add').addEventListener('click',()=>{S.clients.push({id:++S.seq,nome:`Cliente ${S.clients.length+1}`,tipo:'op',serv:'light',docs:500,ov:null});renderClients()});
+$('#st-add').addEventListener('click',()=>{S.clients.push({id:++S.seq,tipo:'op',serv:'light',n:1,docs:500,ov:null,units:[]});renderClients()});
 ['st-sc','st-pm','st-pp','st-nome','st-prep'].forEach(i=>$('#'+i).addEventListener('input',updateStudio));
 
 /* ---------- PDF ---------- */
