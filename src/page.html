@@ -1,0 +1,220 @@
+<header class="top"><div class="wrap">
+  <a class="brand" href="#home"><span id="brandmark">Yuxme</span></a>
+  <nav id="nav">
+    <a href="#home" data-v="home">Home</a>
+    <a href="#pmi" data-v="pmi">PMI</a>
+    <a href="#commercialisti" data-v="commercialisti">Commercialisti</a>
+    <a href="#guida" data-v="guida">Guida</a>
+  </nav>
+</div></header>
+
+<main class="wrap">
+
+<!-- HOME -->
+<section id="v-home" class="view">
+  <span class="eyebrow">Preventivatore</span>
+  <h1>Che preventivo ti serve?</h1>
+  <p class="lead">Scegli il canale, inserisci pochi numeri e scarica il preventivo già impaginato.</p>
+  <div class="choices">
+    <a class="choice" href="#pmi"><b>PMI</b><small>Regime contabile e numero di fatture: ottieni canone annuo, eccedenza stimata e totale.</small><em>Preventivo PMI</em></a>
+    <a class="choice" href="#commercialisti"><b>Commercialisti</b><small>Parti da quanti clienti ha lo studio e da cosa vuole delegare: ottieni il prezzo per tipo di cliente, con sconti e totale.</small><em>Preventivo studio</em></a>
+  </div>
+  <p class="minor">I dati che inserisci restano solo in questa scheda del browser: non vengono salvati né inviati a nessun server. Prima volta? <a href="#guida">Guarda la guida animata</a>. I prezzi di listino sono fissi: <a href="#listino">consulta listino e regole</a>.</p>
+</section>
+
+<!-- PMI -->
+<section id="v-pmi" class="view" hidden>
+  <div class="titlebar"><h1>Preventivo PMI</h1><button class="btn ghost" type="button" data-wipe>Cancella i dati</button></div>
+  <div class="notes" data-wipemsg></div>
+  <div class="cols">
+    <div class="card">
+      <h2>Dati dell'azienda</h2>
+      <div class="grid2">
+        <label class="f">Ragione sociale<input autocomplete="off" id="pmi-nome" type="text" placeholder="Es. Rossi Srl"></label>
+        <label class="f">Preparato da<input autocomplete="off" id="pmi-prep" type="text" placeholder="Nome e cognome"></label>
+        <label class="f">Email del cliente<input autocomplete="off" id="pmi-mail" type="email" placeholder="nome@azienda.it"></label>
+        <label class="f">Numero preventivo<input autocomplete="off" id="pmi-num" type="text"></label>
+        <label class="f">Valido fino al<input autocomplete="off" id="pmi-val" type="text" placeholder="gg/mm/aaaa"></label>
+      </div>
+      <label class="f">Regime contabile
+        <div class="seg" id="pmi-reg"><button type="button" data-r="ord" class="on">Ordinaria</button><button type="button" data-r="sem">Semplificata</button></div></label>
+      <div class="grid2">
+        <label class="f">Fatture attive all'anno<input autocomplete="off" id="pmi-att" type="number" min="0" inputmode="numeric" value="320"></label>
+        <label class="f">Fatture passive e ricevute all'anno<input autocomplete="off" id="pmi-pas" type="number" min="0" inputmode="numeric" value="410"></label>
+      </div>
+      <label class="check"><input autocomplete="off" id="pmi-corr" type="checkbox"><span>Ha corrispettivi (12 documenti l'anno in più)</span></label>
+      <div class="grid2">
+        <label class="f">Prezzo proposto, dal minimo in su<input autocomplete="off" id="pmi-ov" type="number" min="0" step="0.01" inputmode="decimal"></label>
+      </div>
+      <details class="cdata"><summary>Dati per il contratto (facoltativi)</summary>
+        <p class="hint">Scrivi qui i dati del cliente: compaiono in tutti i punti del contratto, nel mandato SEPA e nel consenso privacy. Puoi anche compilarli o correggerli direttamente nel contratto più sotto.</p>
+        <div class="grid2" id="pmi-cform"></div></details>
+      <p class="hint">I numeri già inseriti sono un esempio: sostituiscili. Prezzo proposto vuoto = minimo di listino. Il prezzo si può solo alzare.</p>
+    </div>
+    <div class="card">
+      <h2>Conto</h2>
+      <div><span class="pill info" id="pmi-fascia"></span></div>
+      <div class="sum" id="pmi-sum"></div>
+      <div class="notes" id="pmi-notes"></div>
+      <div class="notes" id="pmi-err" role="alert"></div>
+    </div>
+  </div>
+  <div class="card sheetbox">
+    <div class="row" style="justify-content:space-between"><h2>Preventivo per il cliente</h2><span class="row"><a class="btn ghost" data-mail="pmi" href="#pmi" target="_blank" rel="noopener">Invia con Gmail</a><a class="btn ghost" data-mailto="pmi" href="#pmi">Invia con l'app di posta</a><button class="btn ghost" type="button" data-share="pmi" hidden>Condividi il PDF</button><button class="btn" type="button" data-pdf="pmi">Scarica il PDF</button></span></div>
+    <p class="hint">Gmail e app di posta si aprono con destinatario, copia e riepilogo già scritti; il PDF viene scaricato e va allegato. "Condividi il PDF", dove disponibile, passa il PDF già allegato all'app che scegli: lì destinatario e copia vanno scritti a mano.</p>
+    <div class="row" data-coderow="pmi" hidden><label class="f">Codice di invio<input autocomplete="off" id="pmi-code" type="password"></label><button class="btn" type="button" data-sendcode="pmi">Invia</button></div>
+    <p class="hint" data-pdfmsg="pmi" hidden></p>
+    <div class="sheetscroll"><div class="sheet" id="pmi-sheet"></div></div>
+  </div>
+  <div class="card sheetbox">
+    <div class="row" style="justify-content:space-between"><h2>Contratto PMI</h2><span class="row"><button class="btn ghost" type="button" data-view="pmi">Visualizza</button><button class="btn" type="button" data-pdf="pmi-c">Scarica il contratto in PDF</button></span></div>
+    <p class="hint">Canone mensile, soglia e ragione sociale arrivano dal preventivo qui sopra. I campi evidenziati si compilano e si correggono scrivendoci dentro; le caselle si spuntano con un clic.</p>
+    <p class="hint" data-pdfmsg="pmi-c" hidden></p>
+    <div class="notes" id="pmi-cerr" role="alert"></div>
+    <div class="contract" id="pmi-contract"></div>
+  </div>
+</section>
+
+<!-- COMMERCIALISTI -->
+<section id="v-commercialisti" class="view" hidden>
+  <div class="titlebar"><h1>Preventivo studio commercialista</h1><button class="btn ghost" type="button" data-wipe>Cancella i dati</button></div>
+  <div class="notes" data-wipemsg></div>
+  <div class="card">
+    <h2>1. Com'è composto lo studio e cosa vuole delegare</h2>
+    <div class="grid2" style="max-width:900px">
+      <label class="f">Nome dello studio<input autocomplete="off" id="st-nome" type="text" placeholder="Es. Studio Bianchi"></label>
+      <label class="f">Preparato da<input autocomplete="off" id="st-prep" type="text" placeholder="Nome e cognome"></label>
+      <label class="f">Email dello studio<input autocomplete="off" id="st-mail" type="email" placeholder="nome@studio.it"></label>
+        <label class="f">Numero preventivo<input autocomplete="off" id="st-num" type="text"></label>
+        <label class="f">Valido fino al<input autocomplete="off" id="st-val" type="text" placeholder="gg/mm/aaaa"></label>
+    </div>
+    <label class="f" style="max-width:520px">Come vuoi fare il preventivo
+      <div class="seg" id="st-mode"><button type="button" data-m="cli" class="on">Cliente per cliente</button><button type="button" data-m="comp">Per composizione</button></div></label>
+    <div class="box" id="st-cli-box">
+      <p class="hint">Per ogni cliente dello studio servono: riferimento, tipo di contabilità, fatture di vendita, fatture di acquisto e corrispettivi dell'anno. Puoi incollare l'elenco da Excel, con le colonne in quest'ordine, oppure aggiungere i clienti uno alla volta e scrivere i numeri nella tabella qui sotto.</p>
+      <div class="grid2">
+        <label class="f">Esigenza dello studio (vale per i clienti che carichi; poi la cambi riga per riga)<select id="st-cli-serv"></select></label>
+      </div>
+      <label class="f">Elenco copiato da Excel<textarea id="st-cli-paste" rows="5" spellcheck="false" autocomplete="off" placeholder="Rossi Srl&#9;ordinaria&#9;320&#9;410&#9;0"></textarea></label>
+      <div class="row">
+        <button class="btn" type="button" id="st-cli-go">Carica l'elenco</button>
+        <button class="btn ghost" type="button" id="st-cli-add">Aggiungi un cliente</button>
+        <button class="btn ghost" type="button" id="st-cli-clear">Svuota l'elenco</button>
+        <span class="hint" id="st-cli-msg"></span>
+      </div>
+    </div>
+    <div class="box" id="st-comp-box" hidden>
+    <div class="comp" id="comp">
+      <span class="h">Tipo di cliente</span><span class="h">Quanti</span><span class="h">Documenti/anno (media)</span><span class="h">Esigenza dello studio</span>
+    </div>
+    <div class="row">
+      <button class="btn" type="button" id="st-gen">Crea il preventivo</button>
+      <button class="btn ghost" type="button" id="st-add">Aggiungi una riga</button>
+      <span class="hint">"Crea" sostituisce le righe qui sotto. I numeri già inseriti sono un esempio.</span>
+    </div>
+    </div>
+    <details class="cdata"><summary>Dati per il contratto (facoltativi)</summary>
+        <p class="hint">Scrivi qui i dati dello studio: compaiono in tutti i punti del contratto, nel mandato SEPA e nel consenso privacy. Puoi anche compilarli o correggerli direttamente nel contratto più sotto.</p>
+        <div class="grid2" id="st-cform"></div></details>
+  </div>
+
+  <div class="card">
+    <h2 id="st-h2"></h2>
+    <p class="hint" id="st-hint"></p>
+    <div class="scroll"><table>
+      <thead id="st-head"></thead>
+      <tbody id="st-body"></tbody>
+    </table></div>
+    <div class="notes" id="st-err" role="alert"></div>
+  </div>
+
+  <div class="cols">
+    <div class="card">
+      <h2>Fascia Light</h2>
+      <p id="st-fascia-txt"></p>
+      <div class="tiers" id="st-tiers"></div>
+      <p class="hint">Lo sconto di fascia vale sull'intero cumulo di licenze Light e Light Plus: al salto di fascia si ricalcola tutto. Il canone fisso per ditta non è scontato.</p>
+      <div class="notes" id="st-notes"></div>
+    </div>
+    <div class="card">
+      <h2>3. Sconti Light Plus e totale</h2>
+      <div class="grid2 end">
+        <label class="f">Light Plus: mesi di avvio agevolati<select id="st-pm"><option value="0">Nessuno</option><option value="1">1 mese</option><option value="2">2 mesi</option><option value="3">3 mesi</option></select></label>
+        <label class="f">Agevolazione su quei mesi<select id="st-pp"><option value="50">Al 50%</option><option value="100">Gratuiti</option></select></label>
+        <label class="f">Light Plus: sconto %<input autocomplete="off" id="st-sc" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="0"></label>
+      </div>
+      <div class="sum" id="st-sum"></div>
+    </div>
+  </div>
+  <div class="card sheetbox">
+    <div class="row" style="justify-content:space-between"><h2>Preventivo per lo studio</h2><span class="row"><a class="btn ghost" data-mail="st" href="#commercialisti" target="_blank" rel="noopener">Invia con Gmail</a><a class="btn ghost" data-mailto="st" href="#commercialisti">Invia con l'app di posta</a><button class="btn ghost" type="button" data-share="st" hidden>Condividi il PDF</button><button class="btn" type="button" data-pdf="st">Scarica il PDF</button></span></div>
+    <p class="hint">Gmail e app di posta si aprono con destinatario, copia e riepilogo già scritti; il PDF viene scaricato e va allegato. "Condividi il PDF", dove disponibile, passa il PDF già allegato all'app che scegli: lì destinatario e copia vanno scritti a mano.</p>
+    <div class="row" data-coderow="st" hidden><label class="f">Codice di invio<input autocomplete="off" id="st-code" type="password"></label><button class="btn" type="button" data-sendcode="st">Invia</button></div>
+    <p class="hint" data-pdfmsg="st" hidden></p>
+    <div class="sheetscroll"><div class="sheet" id="st-sheet"></div></div>
+  </div>
+  <div class="card sheetbox">
+    <div class="row" style="justify-content:space-between"><h2>Contratto studio</h2><span class="row"><button class="btn ghost" type="button" data-view="st">Visualizza</button><button class="btn" type="button" data-pdf="st-c">Scarica il contratto in PDF</button></span></div>
+    <p class="hint">Prezzi, sconti ed elenco clienti dei moduli d'ordine arrivano dal preventivo qui sopra. I campi evidenziati si compilano e si correggono scrivendoci dentro; le caselle si spuntano con un clic.</p>
+    <p class="hint" data-pdfmsg="st-c" hidden></p>
+    <details class="cdata"><summary>Incolla l'elenco dei clienti da Excel</summary>
+      <p class="hint">Copia da Excel le colonne, in quest'ordine: ragione sociale, rappresentante legale, partita IVA, periodicità IVA. Una riga per cliente; bastano anche solo le prime colonne.</p>
+      <label class="f">Riga del preventivo da compilare<select id="st-paste-row"></select></label>
+      <label class="f">Elenco copiato<textarea id="st-paste" rows="4" spellcheck="false" autocomplete="off"></textarea></label>
+      <div class="row"><button class="btn ghost" type="button" id="st-paste-go">Inserisci nei moduli d'ordine</button><span class="hint" id="st-paste-msg"></span></div>
+    </details>
+    <div class="notes" id="st-cerr" role="alert"></div>
+    <div class="contract" id="st-contract"></div>
+  </div>
+</section>
+
+<!-- GUIDA -->
+<section id="v-guida" class="view" hidden>
+  <span class="eyebrow">Guida</span>
+  <h1>Dal numero di fatture al contratto, in sei passaggi</h1>
+  <div class="demo" id="demo">
+    <div class="demo-cap"><span id="demo-n"></span><b id="demo-t"></b></div>
+    <div class="demo-stage" id="demo-stage" aria-live="off"></div>
+    <div class="demo-ctl"><button type="button" id="demo-pp">Pausa</button><div class="demo-dots" id="demo-dots"></div></div>
+  </div>
+  <div class="cols">
+    <div class="card"><h2>Preventivo PMI</h2><ol class="steps">
+      <li><b>Apri PMI</b> dalla home o dalla barra in alto.</li>
+      <li><b>Scrivi ragione sociale, il tuo nome e l'email del cliente</b>. Numero del preventivo e validità sono già proposti e si possono cambiare.</li>
+      <li><b>Scegli il regime</b> (ordinaria o semplificata) e inserisci <b>fatture attive e passive</b> dell'anno. Spunta i corrispettivi se ci sono.</li>
+      <li><b>Leggi il conto</b>: fascia, minimo di listino, eccedenza stimata e totale con IVA.</li>
+      <li><b>Prezzo proposto</b>: lascialo vuoto per il minimo, oppure scrivi un importo più alto. Sotto il minimo il PDF non si scarica.</li>
+      <li><b>Scarica il PDF</b> del preventivo, oppure <b>Invia per email</b>: tu resti sempre in copia.</li>
+      <li><b>Contratto PMI</b>: canone mensile e soglia sono già compilati. Scrivi i dati del cliente in "Dati per il contratto" oppure direttamente nei campi evidenziati, spunta le prestazioni extra e scarica il contratto.</li>
+      <li><b>Cancella i dati</b> quando hai finito.</li>
+    </ol></div>
+    <div class="card"><h2>Preventivo studio commercialista</h2><ol class="steps">
+      <li><b>Apri Commercialisti</b>.</li>
+      <li><b>Scegli come lavorare</b>. <b>Cliente per cliente</b>: incolla da Excel l'elenco dei clienti dello studio (riferimento, tipo di contabilità, fatture di vendita, fatture di acquisto, corrispettivi) o aggiungili a mano. <b>Per composizione</b>: se non hai l'elenco, indica quanti clienti ci sono per tipo e i documenti medi.</li>
+      <li><b>Controlla la tabella</b>: una riga per cliente (o per tipo di cliente). Puoi correggere tipo, esigenza e numeri, togliere righe o aggiungerne.</li>
+      <li><b>Importo per cliente</b>: vuoto vale il listino; puoi alzarlo. Sotto il listino la cella diventa rossa e l'importo torna al minimo.</li>
+      <li><b>Fascia Light</b>: si aggiorna da sola in base al numero di licenze Light e Light Plus.</li>
+      <li><b>Sconti</b>: esistono solo per il Light Plus. Scegli lo sconto % e 1, 2 o 3 mesi al 50% o gratuiti.</li>
+      <li><b>Scarica il PDF</b> del preventivo, oppure <b>Invia per email</b>.</li>
+      <li><b>Contratto studio</b>: prezzi e condizioni particolari sono già compilati; nei moduli d'ordine c'è una riga per ogni cliente: puoi incollare l'elenco da Excel o compilarla a mano quando hai i dati.</li>
+      <li><b>Cancella i dati</b> quando hai finito.</li>
+    </ol></div>
+  </div>
+</section>
+
+<!-- LISTINO (sola lettura) -->
+<section id="v-listino" class="view" hidden>
+  <h1>Listino e regole</h1>
+  <p class="lead">Valori fissi, uguali per tutti. Importi annui, IVA esclusa.</p>
+  <div class="cols">
+    <div class="card"><h2>PMI</h2><div class="ro" id="l-pmi"></div></div>
+    <div class="card"><h2>Studi: Full Assistance</h2><div class="ro" id="l-full"></div></div>
+    <div class="card"><h2>Studi: Light e Light Plus</h2><div class="ro" id="l-light"></div></div>
+    <div class="card"><h2>Fasce Light per numero di licenze</h2><div class="ro" id="l-fasce"></div></div>
+  </div>
+</section>
+</main>
+<div class="viewer" id="viewer" hidden>
+  <div class="viewer-bar"><b id="viewer-t"></b><button type="button" id="viewer-print" hidden>Apri il PDF per la stampa</button><button type="button" id="viewer-dl">Scarica il PDF</button><button type="button" class="ghost" id="viewer-x">Chiudi</button></div>
+  <div class="contract" id="viewer-doc"></div>
+</div>
