@@ -88,6 +88,22 @@
         <label class="f">Numero preventivo<input autocomplete="off" id="st-num" type="text"></label>
         <label class="f">Valido fino al<input autocomplete="off" id="st-val" type="text" placeholder="gg/mm/aaaa"></label>
     </div>
+    <label class="f" style="max-width:520px">Come vuoi fare il preventivo
+      <div class="seg" id="st-mode"><button type="button" data-m="cli" class="on">Cliente per cliente</button><button type="button" data-m="comp">Per composizione</button></div></label>
+    <div class="box" id="st-cli-box">
+      <p class="hint">Per ogni cliente dello studio servono: riferimento, tipo di contabilità, fatture di vendita, fatture di acquisto e corrispettivi dell'anno. Puoi incollare l'elenco da Excel, con le colonne in quest'ordine, oppure aggiungere i clienti uno alla volta e scrivere i numeri nella tabella qui sotto.</p>
+      <div class="grid2">
+        <label class="f">Esigenza dello studio (vale per i clienti che carichi; poi la cambi riga per riga)<select id="st-cli-serv"></select></label>
+      </div>
+      <label class="f">Elenco copiato da Excel<textarea id="st-cli-paste" rows="5" spellcheck="false" autocomplete="off" placeholder="Rossi Srl&#9;ordinaria&#9;320&#9;410&#9;0"></textarea></label>
+      <div class="row">
+        <button class="btn" type="button" id="st-cli-go">Carica l'elenco</button>
+        <button class="btn ghost" type="button" id="st-cli-add">Aggiungi un cliente</button>
+        <button class="btn ghost" type="button" id="st-cli-clear">Svuota l'elenco</button>
+        <span class="hint" id="st-cli-msg"></span>
+      </div>
+    </div>
+    <div class="box" id="st-comp-box" hidden>
     <div class="comp" id="comp">
       <span class="h">Tipo di cliente</span><span class="h">Quanti</span><span class="h">Documenti/anno (media)</span><span class="h">Esigenza dello studio</span>
     </div>
@@ -96,16 +112,17 @@
       <button class="btn ghost" type="button" id="st-add">Aggiungi una riga</button>
       <span class="hint">"Crea" sostituisce le righe qui sotto. I numeri già inseriti sono un esempio.</span>
     </div>
+    </div>
     <details class="cdata"><summary>Dati per il contratto (facoltativi)</summary>
         <p class="hint">Scrivi qui i dati dello studio: compaiono in tutti i punti del contratto, nel mandato SEPA e nel consenso privacy. Puoi anche compilarli o correggerli direttamente nel contratto più sotto.</p>
         <div class="grid2" id="st-cform"></div></details>
   </div>
 
   <div class="card">
-    <h2>2. Prezzo per tipo di cliente</h2>
-    <p class="hint">Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate, × 1 per le forfettarie. Documenti, righe e importi sono per singolo cliente; il totale moltiplica per il numero di clienti. L'importo si può alzare sopra il listino; campo vuoto = listino.</p>
+    <h2 id="st-h2"></h2>
+    <p class="hint" id="st-hint"></p>
     <div class="scroll"><table>
-      <thead><tr><th class="num">Quanti</th><th>Tipo di cliente</th><th>Esigenza</th><th class="num">Documenti/anno</th><th class="num">Righe stimate</th><th class="num">Listino per cliente</th><th class="num">Importo per cliente</th><th class="num">Totale</th><th>Controllo</th><th></th></tr></thead>
+      <thead id="st-head"></thead>
       <tbody id="st-body"></tbody>
     </table></div>
     <div class="notes" id="st-err" role="alert"></div>
@@ -173,8 +190,8 @@
     </ol></div>
     <div class="card"><h2>Preventivo studio commercialista</h2><ol class="steps">
       <li><b>Apri Commercialisti</b>.</li>
-      <li><b>Componi lo studio</b>: per ogni tipo di cliente indica quanti sono, i documenti medi all'anno e l'esigenza (Light, Light Plus o Full).</li>
-      <li><b>Crea il preventivo</b>: esce una riga per tipo di cliente, senza bisogno dei nomi. Puoi cambiare quantità, tipo, esigenza e documenti, togliere la riga o aggiungerne altre (per esempio per dividere le ordinarie tra Light e Full).</li>
+      <li><b>Scegli come lavorare</b>. <b>Cliente per cliente</b>: incolla da Excel l'elenco dei clienti dello studio (riferimento, tipo di contabilità, fatture di vendita, fatture di acquisto, corrispettivi) o aggiungili a mano. <b>Per composizione</b>: se non hai l'elenco, indica quanti clienti ci sono per tipo e i documenti medi.</li>
+      <li><b>Controlla la tabella</b>: una riga per cliente (o per tipo di cliente). Puoi correggere tipo, esigenza e numeri, togliere righe o aggiungerne.</li>
       <li><b>Importo per cliente</b>: vuoto vale il listino; puoi alzarlo. Sotto il listino la cella diventa rossa e l'importo torna al minimo.</li>
       <li><b>Fascia Light</b>: si aggiorna da sola in base al numero di licenze Light e Light Plus.</li>
       <li><b>Sconti</b>: esistono solo per il Light Plus. Scegli lo sconto % e 1, 2 o 3 mesi al 50% o gratuiti.</li>

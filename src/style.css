@@ -175,3 +175,4 @@ details.cdata[open]>summary{margin-bottom:12px}
 details.cdata>*+*{margin-top:10px}
 textarea{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0;resize:vertical}
 .hint a{color:var(--teal);font-weight:600}
+.box{display:flex;flex-direction:column;gap:16px;min-width:0}

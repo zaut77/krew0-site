@@ -43,6 +43,6 @@ window.addEventListener('hashchange', route);
 /* ---- avvio ---- */
 datiPredefiniti();
 renderPmi();
-genera();
+setMode('cli');
 route();
 riarmaInattivita();

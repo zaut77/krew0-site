@@ -205,7 +205,8 @@ function wipeAll(motivo) {
   ['pmi', 'st', 'pmi-c', 'st-c'].forEach(k => pdfMsg(k, ''));
   $('#st-paste-msg').textContent = '';
   datiPredefiniti();
-  renderPmi(); genera(); // genera() ricrea le righe: le schede dei clienti spariscono con loro
+  $('#st-cli-msg').textContent = '';
+  renderPmi(); setMode('cli'); // svuota le righe: le schede dei clienti spariscono con loro
   document.querySelectorAll('[data-wipemsg]').forEach(el => showNotes(el, [['ok', motivo]]));
 }
 

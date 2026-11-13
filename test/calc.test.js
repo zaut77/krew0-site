@@ -35,6 +35,10 @@ test('sconto e mesi agevolati solo sul Light Plus', () => {
   quasi(r.primo, r.app - r.sc - r.promo);
   quasi(r.regime, r.app - r.sc);
 });
+test('cliente singolo: documenti = vendite + acquisti + corrispettivi', () => {
+  // semplificata con 120 + 200 + 12 = 332 documenti in Light: 600 + 332 × 3 × 0,30 = 898,80
+  quasi(calcStudio([riga('sem', 'light', 1, 120 + 200 + 12)], 0, 0, 50).app, 898.80);
+});
 test('importo sotto listino segnalato', () => {
   assert.equal(calcStudio([riga('op', 'full', 2, 100, 2000)], 0, 0, 50).sotto, 1);
   assert.equal(calcStudio([riga('op', 'full', 2, 100, 3500)], 0, 0, 50).sotto, 0);

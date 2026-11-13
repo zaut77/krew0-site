@@ -213,7 +213,13 @@ function chiudiCampo(c, k) {
 document.addEventListener('input', e => {
   const el = e.target; if (!el.classList || !el.classList.contains('fld')) return;
   const v = el.textContent.replace(/\s+/g, ' ').trim();
-  if (el.dataset.cid) { const unit = unitOf(el.dataset.cid); if (unit) unit[el.dataset.f] = v; return; }
+  if (el.dataset.cid) {
+    const unit = unitOf(el.dataset.cid); if (!unit) return;
+    unit[el.dataset.f] = v;
+    const riga = S.clients.find(x => x.id == el.dataset.cid.split('_')[0]);
+    if (riga && riga.rif != null && el.dataset.f === 'nome') { riga.rif = v; const campo = $(`#r${riga.id}-rif`); if (campo) campo.value = v; } // cliente singolo: riferimento e ragione sociale coincidono
+    return;
+  }
   const { c, k } = el.dataset;
   setCampo(c, k, v);
   syncFields(c, el);
