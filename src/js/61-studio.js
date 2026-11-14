@@ -101,7 +101,7 @@ function updateStudio() {
 
   // fascia Light
   $('#st-fascia-txt').innerHTML = r.nL
-    ? `<b>${r.nL} licenze</b> tra Light e Light Plus (forfettarie escluse): fascia <b>${f.label}</b>, <b>${dec(f.prezzo)} €</b> per riga, più ${eur(L.light.fisso)} fissi per ditta.`
+    ? `<b>${r.nL} licenze</b> tra Light e Light Plus: fascia <b>${f.label}</b>, <b>${dec(f.prezzo)} €</b> per riga, più ${eur(L.light.fisso)} fissi per ditta.`
     : 'Nessun cliente in Light o Light Plus: le fasce non si applicano.';
   let da = 1;
   $('#st-tiers').innerHTML = L.light.fasce.map(([fino, sconto], i) => {

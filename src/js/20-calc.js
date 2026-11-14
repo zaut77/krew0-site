@@ -25,7 +25,7 @@ function fascia(licenze) {
 
 /** Righe di libro giornale stimate per documento: ×6 ordinarie, ×3 semplificate. */
 const righePerDocumento = tipo => tipo === 'sem' ? LISTINO.light.mSem : LISTINO.light.mOrd;
-/** Le forfettarie in Light e Light Plus pagano un importo fisso: niente righe e niente fascia. */
+/** Le forfettarie in Light e Light Plus pagano un importo fisso, senza quota a riga. */
 const forfettariaLight = c => c.tipo === 'forf' && c.serv !== 'full';
 
 /**
@@ -74,8 +74,10 @@ function calcPmi(d) {
  */
 function calcStudio(righe, scPct, mesi, promoPct) {
   const quanti = c => Math.max(0, Math.round(c.n == null ? 1 : c.n));
-  // licenze che contano per la fascia: Light e Light Plus, escluse le forfettarie a importo fisso
-  const nL = righe.reduce((a, c) => a + (c.serv !== 'full' && !forfettariaLight(c) ? quanti(c) : 0), 0);
+  // licenze che contano per la fascia: tutte quelle in Light e Light Plus, forfettarie comprese.
+  // La mail di Parretta del 27/10/2026 parla di sconto "sull'intero cumulo di aziende portato"
+  // senza eccezioni; le forfettarie contano per la fascia ma pagano comunque l'importo fisso.
+  const nL = righe.reduce((a, c) => a + (c.serv !== 'full' ? quanti(c) : 0), 0);
   const f = fascia(nL);
   let lis = 0, app = 0, plusApp = 0, sotto = 0, n = 0;
   const cnt = { light: 0, plus: 0, full: 0 };

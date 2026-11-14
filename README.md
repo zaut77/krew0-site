@@ -45,7 +45,7 @@ apparente.
 - Gli sconti esistono solo per il Light Plus (sconto % e 1-3 mesi al 50% o gratuiti).
 - Lo sconto di fascia Light vale sull'intero cumulo di licenze Light + Light Plus.
 - Righe stimate: documenti × 6 (ordinarie), × 3 (semplificate).
-- Forfettarie: 200 € fissi per cliente in ogni servizio; in Light non contano per la fascia.
+- Forfettarie: 200 € fissi per cliente in ogni servizio; in Light contano per la fascia, come ogni altra licenza.
 
 Per cambiare un prezzo si modifica `LISTINO` in `00-config.js` e si rilancia la build.
 
