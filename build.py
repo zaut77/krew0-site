@@ -116,9 +116,9 @@ img{{height:36px;width:auto;align-self:flex-start}}
 h1{{font-size:22px;margin:0;color:#0D0D0C}}
 label{{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#6B6D66}}
 input{{font:inherit;padding:11px 12px;border:1px solid #E2E3DE;border-radius:8px;background:#FBFCF7;color:#3F403D}}
-button{{font:inherit;font-weight:600;padding:11px 18px;border-radius:999px;border:0;background:#36296E;color:#fff;cursor:pointer}}
+button{{font:inherit;font-weight:600;padding:11px 18px;border-radius:999px;border:0;background:#1F3A7A;color:#fff;cursor:pointer}}
 button:disabled{{opacity:.5}}
-input:focus-visible,button:focus-visible{{outline:2px solid #36296E;outline-offset:2px}}
+input:focus-visible,button:focus-visible{{outline:2px solid #1F3A7A;outline-offset:2px}}
 p{{margin:0;font-size:14px;min-height:1.4em;color:#B3261E}}
 </style>
 </head>

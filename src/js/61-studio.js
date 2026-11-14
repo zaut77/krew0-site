@@ -46,7 +46,7 @@ function genera() {
 const TABELLA = {
   cli: {
     titolo: '2. Prezzo per cliente',
-    testa: ['Riferimento', 'Tipo di contabilità', 'Esigenza', 'Fatture di vendita*', 'Fatture di acquisto*', 'Corrispettivi*', 'Documenti*', 'Righe stimate*', 'Listino*', 'Importo applicato*', 'Controllo', ''],
+    testa: ['Riferimento', 'Tipo di contabilità', 'Esigenza', 'Fatture di vendita*', 'Fatture di acquisto*', 'Corri&shy;spettivi*', 'Docu&shy;menti*', 'Righe stimate*', 'Listino*', 'Importo applicato*', 'Controllo', ''],
     aiuto: 'Documenti = fatture di vendita + fatture di acquisto + corrispettivi dell\'anno. Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate. Le forfettarie pagano 200 € fissi, in ogni servizio. L\'importo si può alzare sopra il listino; campo vuoto = listino.',
     vuoto: 'Nessun cliente. Incolla l\'elenco da Excel qui sopra oppure premi "Aggiungi un cliente".',
   },
@@ -66,13 +66,13 @@ function renderClients() {
   // l'asterisco nelle intestazioni marca le colonne numeriche, allineate a destra
   $('#st-head').innerHTML = `<tr>${T.testa.map(t => t.endsWith('*') ? `<th class="num">${t.slice(0, -1)}</th>` : `<th>${t}</th>`).join('')}</tr>`;
   $('#st-body').innerHTML = S.clients.map(c => `<tr data-id="${c.id}">
-    ${cli ? `<td><input autocomplete="off" class="w-name" style="min-width:170px" id="r${c.id}-rif" data-f="rif" type="text" value="${esc(c.rif)}" placeholder="Nome o codice del cliente" aria-label="Riferimento del cliente"></td>` : numero(c, 'n', c.n, 70, 'Quanti clienti')}
+    ${cli ? `<td><input autocomplete="off" class="w-name" style="min-width:150px" id="r${c.id}-rif" data-f="rif" type="text" value="${esc(c.rif)}" placeholder="Nome o codice del cliente" aria-label="Riferimento del cliente"></td>` : numero(c, 'n', c.n, 70, 'Quanti clienti')}
     <td><select class="w-sel" id="r${c.id}-tipo" data-f="tipo" aria-label="Tipo di contabilità">${opts(TIPI, c.tipo)}</select></td>
     <td><select class="w-sel" id="r${c.id}-serv" data-f="serv" aria-label="Esigenza">${opts(SERVIZI, c.serv)}</select></td>
     ${cli ? numero(c, 'fv', c.fv, 0, 'Fatture di vendita') + numero(c, 'fa', c.fa, 0, 'Fatture di acquisto') + numero(c, 'co', c.co, 0, 'Corrispettivi') + '<td class="num" data-o="docs"></td>'
           : numero(c, 'docs', c.docs, 0, 'Documenti all\'anno per cliente')}
     <td class="num" data-o="righe"></td><td class="num" data-o="listino"></td>
-    <td class="num"><input autocomplete="off" class="w-num" style="width:110px" id="r${c.id}-ov" data-f="ov" type="number" min="0" step="0.01" inputmode="decimal" value="${c.ov == null ? '' : c.ov}" aria-label="Importo per cliente"></td>
+    <td class="num"><input autocomplete="off" class="w-num" style="width:100px" id="r${c.id}-ov" data-f="ov" type="number" min="0" step="0.01" inputmode="decimal" value="${c.ov == null ? '' : c.ov}" aria-label="Importo per cliente"></td>
     ${cli ? '' : '<td class="num" data-o="tot"></td>'}
     <td data-o="esito"></td>
     <td><button class="ico" type="button" data-del title="Togli la riga" aria-label="Togli la riga">✕</button></td></tr>`).join('')
@@ -95,8 +95,8 @@ function updateStudio() {
     cella('tot', eur(x.appl * x.q));
     cella('docs', int(x.c.docs));
     campo.placeholder = dec(x.listino); campo.dataset.min = x.listino; campo.classList.toggle('bad', sotto);
-    tr.querySelector('[data-o=esito]').innerHTML = sotto ? `<span class="pill bad">Sotto listino ${eur(x.delta)}</span>`
-      : x.delta > 0.005 ? `<span class="pill ok">Sopra listino +${eur(x.delta)}</span>` : '<span class="pill info">Listino</span>';
+    tr.querySelector('[data-o=esito]').innerHTML = sotto ? `<span class="pill bad">Sotto ${eur(x.delta)}</span>`
+      : x.delta > 0.005 ? `<span class="pill ok">Sopra +${eur(x.delta)}</span>` : '<span class="pill info">Listino</span>';
   });
 
   // fascia Light

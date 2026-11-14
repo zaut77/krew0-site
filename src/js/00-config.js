@@ -73,7 +73,7 @@ const BRAND = {
   logoContratto: '__ASSET:assets/logo-contratto.png__', // logo dei contratti originali, con la dicitura
   sepaSimbolo: '__ASSET:assets/sepa-simbolo.png__',     // simbolo nel mandato SEPA originale
   sepaFreccia: '__ASSET:assets/sepa-freccia.png__',     // freccia accanto alla firma del mandato
-  pdf: { accent: [54, 41, 110], soft: [237, 235, 247], ink: [63, 64, 61], muted: [107, 109, 102], label: [77, 64, 132] },
+  pdf: { accent: [31, 58, 122], soft: [232, 238, 248], ink: [63, 64, 61], muted: [107, 109, 102], label: [63, 99, 168] },
 };
 /**
  * Font Carlito (licenza SIL OFL), metricamente compatibile con il Calibri dei
