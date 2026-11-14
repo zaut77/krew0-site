@@ -4,6 +4,7 @@
 <style>
 /* Layout: barra in alto con logo, una vista per volta; ogni preventivatore = dati, conto, foglio del preventivo. */
 :root{
+  color-scheme:light; /* un solo aspetto, chiaro, anche se il dispositivo è in tema scuro (scelta di Stefano) */
   --bg:#FBFCF7; --surface:#FFFFFF; --ink:#3F403D; --head:#0D0D0C; --muted:#6B6D66; --line:#E2E3DE; --panel:#F1F2ED;
   --accent:#1F3A7A; --accent-ink:#FFFFFF; --accent-soft:#E8EEF8; --teal:#3F63A8;
   --ok:#17794A; --ok-soft:#E0F3E8; --warn:#8A5200; --warn-soft:#FDF0D5; --bad:#B3261E; --bad-soft:#FBE4E2;
@@ -12,14 +13,6 @@
   /* il foglio del preventivo è un documento: resta chiaro in entrambi i temi */
   --paper:#FFFFFF; --paper-ink:#3F403D; --paper-muted:#6B6D66; --paper-line:#E2E3DE; --paper-accent:#1F3A7A; --paper-soft:#E8EEF8;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#0F1626; --surface:#18213A; --ink:#E3E9F5; --head:#FFFFFF; --muted:#A3AEC6; --line:#2A3656; --panel:#1D2845;
-  --accent:#A9C1F2; --accent-ink:#0F1A33; --accent-soft:#1F2F55; --teal:#BFCDE8;
-  --ok:#5FD39A; --ok-soft:#12301F; --warn:#F2B950; --warn-soft:#3A2B0A; --bad:#FF8A80; --bad-soft:#40181A; color-scheme:dark } }
-:root[data-theme="dark"]{
-  --bg:#0F1626; --surface:#18213A; --ink:#E3E9F5; --head:#FFFFFF; --muted:#A3AEC6; --line:#2A3656; --panel:#1D2845;
-  --accent:#A9C1F2; --accent-ink:#0F1A33; --accent-soft:#1F2F55; --teal:#BFCDE8;
-  --ok:#5FD39A; --ok-soft:#12301F; --warn:#F2B950; --warn-soft:#3A2B0A; --bad:#FF8A80; --bad-soft:#40181A; color-scheme:dark }
 
 *{box-sizing:border-box}
 [hidden]{display:none!important}
