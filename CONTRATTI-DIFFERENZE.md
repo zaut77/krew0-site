@@ -50,6 +50,7 @@ altre sono adattamenti tecnici da far validare a chi gestisce i contratti.
 | S9 | Il contratto prevede solo clienti "holding" e "non holding" | I clienti in regime semplificato (1.600) e forfettario (200) in Full sono messi nel modulo "Full non holding", con la dicitura "BOZZA IN REVISIONE" | L'originale non li prevede **[decisione]: bozza in revisione** |
 | S10 | Modulo Full holding: "COMPENSO ANNUALE 1.600,00 €" | "indicato in tabella per ciascun cliente attivato" | Vedi S8 |
 | S11 | Il Light Plus non esiste nel contratto | I clienti Light Plus sono nel modulo Light, con "(Light Plus)" accanto al regime | Light Plus = Light con connettori da attivare **[decisione]** |
+| S11b | Nessuna tariffa per i forfettari in Light | 200 € annui fissi per cliente, indicati nella tabella del modulo Light e nella riga "Condizioni particolari" | **[decisione]** del 14/11/2026 |
 | S12 | Modulo Light: tre voci a elenco puntato con titolo in grassetto | Stesse voci come paragrafi | Impaginazione |
 | S13 | Righe di firma "______________, il______________" | "[luogo], il [data]" | Vedi 2 |
 

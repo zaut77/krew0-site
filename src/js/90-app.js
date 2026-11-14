@@ -21,7 +21,7 @@ $('#brandmark').innerHTML = `<img src="${BRAND.logo}" alt="Yuxme">`;
   tabella('l-light', [
     ['Canone fisso per ditta', eur(L.light.fisso)], ['Prezzo base per riga', eur(L.light.riga)],
     ['Righe per documento, ordinarie', '× ' + L.light.mOrd], ['Righe per documento, semplificate', '× ' + L.light.mSem],
-    ['Righe per documento, forfettarie', '× ' + L.light.mForf],
+    ['Forfettaria, importo fisso per cliente', eur(L.light.forf)],
     ['Light Plus', 'Come il Light, con sconto % e 1–3 mesi al 50% o gratuiti'], REGOLA]);
   let da = 1;
   tabella('l-fasce', L.light.fasce.map(([fino, sconto]) => {

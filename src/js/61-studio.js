@@ -47,13 +47,13 @@ const TABELLA = {
   cli: {
     titolo: '2. Prezzo per cliente',
     testa: ['Riferimento', 'Tipo di contabilità', 'Esigenza', 'Fatture di vendita*', 'Fatture di acquisto*', 'Corrispettivi*', 'Documenti*', 'Righe stimate*', 'Listino*', 'Importo applicato*', 'Controllo', ''],
-    aiuto: 'Documenti = fatture di vendita + fatture di acquisto + corrispettivi dell\'anno. Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate, × 1 per le forfettarie. L\'importo si può alzare sopra il listino; campo vuoto = listino.',
+    aiuto: 'Documenti = fatture di vendita + fatture di acquisto + corrispettivi dell\'anno. Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate. Le forfettarie pagano 200 € fissi, in ogni servizio. L\'importo si può alzare sopra il listino; campo vuoto = listino.',
     vuoto: 'Nessun cliente. Incolla l\'elenco da Excel qui sopra oppure premi "Aggiungi un cliente".',
   },
   comp: {
     titolo: '2. Prezzo per tipo di cliente',
     testa: ['Quanti*', 'Tipo di cliente', 'Esigenza', 'Documenti/anno*', 'Righe stimate*', 'Listino per cliente*', 'Importo per cliente*', 'Totale*', 'Controllo', ''],
-    aiuto: 'Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate, × 1 per le forfettarie. Documenti, righe e importi sono per singolo cliente; il totale moltiplica per il numero di clienti. L\'importo si può alzare sopra il listino; campo vuoto = listino.',
+    aiuto: 'Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate. Le forfettarie pagano 200 € fissi, in ogni servizio. Documenti, righe e importi sono per singolo cliente; il totale moltiplica per il numero di clienti. L\'importo si può alzare sopra il listino; campo vuoto = listino.',
     vuoto: 'Nessuna riga. Compila la composizione qui sopra e premi "Crea il preventivo".',
   },
 };
@@ -101,7 +101,7 @@ function updateStudio() {
 
   // fascia Light
   $('#st-fascia-txt').innerHTML = r.nL
-    ? `<b>${r.nL} licenze</b> tra Light e Light Plus: fascia <b>${f.label}</b>, <b>${dec(f.prezzo)} €</b> per riga, più ${eur(L.light.fisso)} fissi per ditta.`
+    ? `<b>${r.nL} licenze</b> tra Light e Light Plus (forfettarie escluse): fascia <b>${f.label}</b>, <b>${dec(f.prezzo)} €</b> per riga, più ${eur(L.light.fisso)} fissi per ditta.`
     : 'Nessun cliente in Light o Light Plus: le fasce non si applicano.';
   let da = 1;
   $('#st-tiers').innerHTML = L.light.fasce.map(([fino, sconto], i) => {
@@ -132,6 +132,7 @@ function updateStudio() {
     <div><span>Media per cliente (imponibile)</span><span>${eur(r.n ? r.primo / r.n : 0)}</span></div>`;
 
   // foglio del preventivo: una riga per cliente oppure per tipo di cliente
+  const attive0 = r.rows.filter(x => x.q);
   const cli = S.mode === 'cli';
   const nome = $('#st-nome').value.trim(), prep = $('#st-prep').value.trim();
   const numero = $('#st-num').value.trim(), valido = $('#st-val').value.trim();
@@ -153,6 +154,7 @@ function updateStudio() {
     notes: ['Importi annui.'].concat(
       cli ? ['Documenti = fatture di vendita + fatture di acquisto + corrispettivi dell\'anno.'] : [],
       r.nL ? [`Light e Light Plus: ${eur(L.light.fisso)} l'anno per ditta più una quota per riga di libro giornale. Le righe sono stimate: documenti × ${L.light.mOrd} per le ordinarie, × ${L.light.mSem} per le semplificate. Il conteggio definitivo avviene sulle righe effettive.`] : [],
+      attive0.some(x => x.c.tipo === 'forf') ? [`Clienti forfettari: ${eur(L.light.forf)} l'anno ciascuno.`] : [],
       r.cnt.full ? [`Full Assistance: fino a ${int(L.full.inclusi)} documenti l'anno per cliente; oltre, ${eur(L.full.ecc)} a documento, a consuntivo.`] : [],
       r.promo ? ['I mesi agevolati del Light Plus valgono sul primo anno.'] : [], r.sc ? ['Lo sconto si applica ai soli clienti in Light Plus.'] : []),
   };
@@ -180,6 +182,7 @@ function contractStudio(r, scPct, promoLab) {
   a.fDoc = int(L.full.inclusi); a.fEcc = dec(L.full.ecc);
   a.cond = [
     r.nL && f.idx ? `prezzo per riga ridotto a ${dec(f.prezzo)} € per la fascia ${f.label}` : '',
+    attive.some(x => forfettariaLight(x.c)) ? `clienti forfettari in Light: ${dec(L.light.forf)} € annui fissi per cliente, senza quota a riga` : '',
     r.sc ? `Light Plus: sconto del ${pct(scPct)} sui corrispettivi` : '',
     r.promo ? promoLab + ', sul primo anno' : '',
   ].filter(Boolean).join('; ');

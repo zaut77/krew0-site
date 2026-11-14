@@ -44,7 +44,8 @@ const LISTINO = Object.freeze({
   light: {
     fisso: 600,                 // € l'anno per ditta, mai scontato
     riga: 0.30,                 // € per riga di libro giornale, prima fascia
-    mOrd: 6, mSem: 3, mForf: 1, // righe stimate per documento
+    mOrd: 6, mSem: 3,           // righe stimate per documento
+    forf: 200,                  // forfettarie: importo fisso per cliente, senza quota a riga (decisione del 14/11/2026)
     // [ultima licenza della fascia, sconto % sul prezzo per riga]; null = senza limite.
     // Lo sconto vale sull'intero cumulo di licenze Light + Light Plus.
     fasce: [[10, 0], [20, 10], [30, 20], [50, 30], [100, 40], [null, 50]],

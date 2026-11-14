@@ -39,6 +39,13 @@ test('cliente singolo: documenti = vendite + acquisti + corrispettivi', () => {
   // semplificata con 120 + 200 + 12 = 332 documenti in Light: 600 + 332 × 3 × 0,30 = 898,80
   quasi(calcStudio([riga('sem', 'light', 1, 120 + 200 + 12)], 0, 0, 50).app, 898.80);
 });
+test('forfettarie: 200 fissi anche in Light e Light Plus, fuori dalla fascia', () => {
+  quasi(calcStudio([riga('forf', 'light', 3, 900)], 0, 0, 50).app, 600);          // i documenti non contano
+  quasi(calcStudio([riga('forf', 'plus', 1, 50)], 0, 0, 50).app, 200);
+  const r = calcStudio([riga('op', 'light', 10, 800), riga('forf', 'light', 5, 100)], 0, 0, 50);
+  assert.equal(r.nL, 10); quasi(r.f.prezzo, 0.30);                                // 15 clienti, ma 10 licenze: resta la prima fascia
+  quasi(r.app, 20400 + 1000);
+});
 test('importo sotto listino segnalato', () => {
   assert.equal(calcStudio([riga('op', 'full', 2, 100, 2000)], 0, 0, 50).sotto, 1);
   assert.equal(calcStudio([riga('op', 'full', 2, 100, 3500)], 0, 0, 50).sotto, 0);

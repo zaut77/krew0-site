@@ -24,11 +24,14 @@ function fascia(licenze) {
 }
 
 /** Righe di libro giornale stimate per documento: ×6 ordinarie, ×3 semplificate. */
-const righePerDocumento = tipo => tipo === 'sem' ? LISTINO.light.mSem : tipo === 'forf' ? LISTINO.light.mForf : LISTINO.light.mOrd;
+const righePerDocumento = tipo => tipo === 'sem' ? LISTINO.light.mSem : LISTINO.light.mOrd;
+/** Le forfettarie in Light e Light Plus pagano un importo fisso: niente righe e niente fascia. */
+const forfettariaLight = c => c.tipo === 'forf' && c.serv !== 'full';
 
 /**
  * Prezzo di listino di UN cliente dello studio.
  * Light / Light Plus: fisso + righe stimate × prezzo per riga della fascia.
+ * Forfettarie in Light / Light Plus: importo fisso (LISTINO.light.forf).
  * Full: minimo per tipo + documenti oltre soglia.
  * @param {{tipo:string, serv:string, docs:number}} c
  * @param {number} prezzoRiga  € per riga della fascia corrente
@@ -38,6 +41,7 @@ function prezzoCliente(c, prezzoRiga) {
   if (c.serv === 'full') {
     return { righe: null, listino: LISTINO.full[c.tipo] + Math.max(0, c.docs - LISTINO.full.inclusi) * LISTINO.full.ecc };
   }
+  if (forfettariaLight(c)) return { righe: null, listino: LISTINO.light.forf };
   const righe = c.docs * righePerDocumento(c.tipo);
   return { righe, listino: LISTINO.light.fisso + righe * prezzoRiga };
 }
@@ -70,7 +74,8 @@ function calcPmi(d) {
  */
 function calcStudio(righe, scPct, mesi, promoPct) {
   const quanti = c => Math.max(0, Math.round(c.n == null ? 1 : c.n));
-  const nL = righe.reduce((a, c) => a + (c.serv !== 'full' ? quanti(c) : 0), 0);
+  // licenze che contano per la fascia: Light e Light Plus, escluse le forfettarie a importo fisso
+  const nL = righe.reduce((a, c) => a + (c.serv !== 'full' && !forfettariaLight(c) ? quanti(c) : 0), 0);
   const f = fascia(nL);
   let lis = 0, app = 0, plusApp = 0, sotto = 0, n = 0;
   const cnt = { light: 0, plus: 0, full: 0 };
