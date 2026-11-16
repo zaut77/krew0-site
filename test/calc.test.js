@@ -56,6 +56,9 @@ test('PMI: fasce ed eccedenza', () => {
   const s = calcPmi({ reg: 'sem', att: 300, pas: 288, corr: true, ov: null });
   assert.equal(s.docs, 600); quasi(s.ecc, 150); quasi(s.imp, 2150);
   assert.equal(calcPmi({ reg: 'ord', att: 100, pas: 100, corr: false, ov: 2000 }).sotto, true);
+  const h = calcPmi({ reg: 'hold', att: 10, pas: 40, corr: false, ov: null });      // holding: bozza a 1.600
+  quasi(h.base, 1600); assert.equal(h.soglia, 1500); assert.equal(h.nome, 'Holding'); quasi(h.tot, 1952);
+  assert.equal(calcPmi({ reg: 'hold', att: 10, pas: 40, corr: false, ov: 1500 }).sotto, true);
 });
 test('controlli di formato', () => {
   assert.equal(vCf('RSSMRA85T10A562S'), ''); assert.notEqual(vCf('RSSMRA85T10A562X'), '');

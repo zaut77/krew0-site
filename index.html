@@ -236,7 +236,7 @@ td .w-num{width:72px}
         <label class="f">Valido fino al<input autocomplete="off" id="pmi-val" type="text" placeholder="gg/mm/aaaa"></label>
       </div>
       <label class="f">Regime contabile
-        <div class="seg" id="pmi-reg"><button type="button" data-r="ord" class="on">Ordinaria</button><button type="button" data-r="sem">Semplificata</button></div></label>
+        <div class="seg" id="pmi-reg"><button type="button" data-r="ord" class="on">Ordinaria</button><button type="button" data-r="sem">Semplificata</button><button type="button" data-r="hold">Holding</button></div></label>
       <div class="grid2">
         <label class="f">Fatture attive all'anno<input autocomplete="off" id="pmi-att" type="number" min="0" inputmode="numeric" value="320"></label>
         <label class="f">Fatture passive e ricevute all'anno<input autocomplete="off" id="pmi-pas" type="number" min="0" inputmode="numeric" value="410"></label>
@@ -380,7 +380,7 @@ td .w-num{width:72px}
     <div class="card"><h2>Preventivo PMI</h2><ol class="steps">
       <li><b>Apri PMI</b> dalla home o dalla barra in alto.</li>
       <li><b>Scrivi ragione sociale, il tuo nome e l'email del cliente</b>. Numero del preventivo e validità sono già proposti e si possono cambiare.</li>
-      <li><b>Scegli il regime</b> (ordinaria o semplificata) e inserisci <b>fatture attive e passive</b> dell'anno. Spunta i corrispettivi se ci sono.</li>
+      <li><b>Scegli il regime</b> (ordinaria, semplificata o holding) e inserisci <b>fatture attive e passive</b> dell'anno. Spunta i corrispettivi se ci sono.</li>
       <li><b>Leggi il conto</b>: fascia, minimo di listino, eccedenza stimata e totale con IVA.</li>
       <li><b>Prezzo proposto</b>: lascialo vuoto per il minimo, oppure scrivi un importo più alto. Sotto il minimo il PDF non si scarica.</li>
       <li><b>Scarica il PDF</b> del preventivo, oppure <b>Invia per email</b>: tu resti sempre in copia.</li>
@@ -866,6 +866,10 @@ const LISTINO = Object.freeze({
   iva: 22,
   pmi: {
     ord1: 2900, ord1Max: 500,   // ordinaria fino a 500 documenti
+    // Holding: BOZZA. Nessuna fonte dà un prezzo per la holding come PMI diretta (riepilogo listino
+    // del 27/10/2026: "Holding e fasce superiori: nessun prezzo"). Si usa il valore del Full studi
+    // (mail "Richiesta preventivo" del 13/10/2026: 1.600 €, 1.500 documenti inclusi). Da confermare.
+    hold: 1600, holdMax: 1500,
     ord2: 3300, ord2Max: 1500,  // ordinaria fino a 1.500 documenti
     sem: 2000, semMax: 500,     // semplificata fino a 500 documenti
     ecc: 1.5,                   // € per documento oltre soglia, a consuntivo
@@ -1044,7 +1048,7 @@ function prezzoCliente(c, prezzoRiga) {
 
 /**
  * Preventivo PMI.
- * @param {{reg:'ord'|'sem', att:number, pas:number, corr:boolean, ov:?number}} d
+ * @param {{reg:'ord'|'sem'|'hold', att:number, pas:number, corr:boolean, ov:?number}} d
  *        ov = prezzo proposto; null = minimo di listino
  */
 function calcPmi(d) {
@@ -1052,6 +1056,7 @@ function calcPmi(d) {
   const docs = d.att + d.pas + (d.corr ? L.corr : 0);
   let base, soglia, nome;
   if (d.reg === 'sem') { base = L.sem; soglia = L.semMax; nome = 'Semplificata'; }
+  else if (d.reg === 'hold') { base = L.hold; soglia = L.holdMax; nome = 'Holding'; }
   else if (docs <= L.ord1Max) { base = L.ord1; soglia = L.ord1Max; nome = 'Ordinaria'; }
   else { base = L.ord2; soglia = L.ord2Max; nome = 'Ordinaria'; }
   const oltre = Math.max(0, docs - soglia), ecc = oltre * L.ecc;
@@ -1991,6 +1996,7 @@ function renderPmi() {
   const note = [];
   if (r.sotto) note.push(['bad', `Il prezzo proposto è ${eur(r.base - r.appl)} sotto il minimo di listino (${eur(r.base)}).`]);
   else if (r.appl > r.base + 0.005) note.push(['ok', `Prezzo proposto ${eur(r.appl - r.base)} sopra il minimo di listino.`]);
+  if (d.reg === 'hold') note.push(['warn', `Holding: ${eur(L.hold)} è un prezzo in bozza, ripreso dal listino Full per gli studi. Non esiste ancora un prezzo ufficiale per la holding come PMI: confermalo prima di inviare.`]);
   if (r.oltre) note.push(['warn', `I documenti superano la soglia di ${int(r.soglia)}: l'eccedenza si paga a fine anno sul consuntivo.`]);
   else if (r.docs >= r.soglia * 0.9) note.push(['warn', `Sei entro il 10% dalla soglia di ${int(r.soglia)} documenti: conviene tenersi larghi.`]);
   showNotes($('#pmi-notes'), note);
@@ -2635,7 +2641,8 @@ $('#brandmark').innerHTML = `<img src="${BRAND.logo}" alt="Yuxme">`;
   const tabella = (id, righe) => { $('#' + id).innerHTML = righe.map(r => `<span>${esc(r[0])}</span><span>${esc(r[1])}</span>`).join(''); };
   tabella('l-pmi', [
     [`Ordinaria fino a ${int(L.pmi.ord1Max)} documenti`, eur(L.pmi.ord1)], [`Ordinaria fino a ${int(L.pmi.ord2Max)} documenti`, eur(L.pmi.ord2)],
-    [`Semplificata fino a ${int(L.pmi.semMax)} documenti`, eur(L.pmi.sem)], ['Documento oltre soglia, a consuntivo', eur(L.pmi.ecc)],
+    [`Semplificata fino a ${int(L.pmi.semMax)} documenti`, eur(L.pmi.sem)],
+    [`Holding fino a ${int(L.pmi.holdMax)} documenti (bozza, da confermare)`, eur(L.pmi.hold)], ['Documento oltre soglia, a consuntivo', eur(L.pmi.ecc)],
     ['Corrispettivi', `${L.pmi.corr} documenti l'anno`], REGOLA]);
   tabella('l-full', [
     ['Ordinaria operativa', eur(L.full.op)], ['Ordinaria holding', eur(L.full.hold)],

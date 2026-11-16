@@ -48,7 +48,7 @@ function prezzoCliente(c, prezzoRiga) {
 
 /**
  * Preventivo PMI.
- * @param {{reg:'ord'|'sem', att:number, pas:number, corr:boolean, ov:?number}} d
+ * @param {{reg:'ord'|'sem'|'hold', att:number, pas:number, corr:boolean, ov:?number}} d
  *        ov = prezzo proposto; null = minimo di listino
  */
 function calcPmi(d) {
@@ -56,6 +56,7 @@ function calcPmi(d) {
   const docs = d.att + d.pas + (d.corr ? L.corr : 0);
   let base, soglia, nome;
   if (d.reg === 'sem') { base = L.sem; soglia = L.semMax; nome = 'Semplificata'; }
+  else if (d.reg === 'hold') { base = L.hold; soglia = L.holdMax; nome = 'Holding'; }
   else if (docs <= L.ord1Max) { base = L.ord1; soglia = L.ord1Max; nome = 'Ordinaria'; }
   else { base = L.ord2; soglia = L.ord2Max; nome = 'Ordinaria'; }
   const oltre = Math.max(0, docs - soglia), ecc = oltre * L.ecc;
