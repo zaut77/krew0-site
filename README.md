@@ -95,5 +95,5 @@ Per cambiare codice si ripete il punto 2.
 - Elenco banche e sportelli: fonte non ufficiale (abicab.nicogis.it, dati di
   gennaio 2024), con nomi in parte superati. Da sostituire con l'archivio ufficiale.
 - Numero del preventivo: data e ora di creazione, non un progressivo comune.
-- Holding come PMI diretta: nessun prezzo nelle fonti; in bozza a 1.600 € (valore del Full studi), da confermare.
+- Holding come PMI diretta: 2.500 € l'anno (deciso il 18/11/2026); soglia di 1.500 documenti ripresa dal Full studi, da confermare.
 - Validità proposta: 30 giorni (`VALIDITA_GIORNI`), da confermare.

@@ -36,10 +36,9 @@ const LISTINO = Object.freeze({
   iva: 22,
   pmi: {
     ord1: 2900, ord1Max: 500,   // ordinaria fino a 500 documenti
-    // Holding: BOZZA. Nessuna fonte dà un prezzo per la holding come PMI diretta (riepilogo listino
-    // del 27/10/2026: "Holding e fasce superiori: nessun prezzo"). Si usa il valore del Full studi
-    // (mail "Richiesta preventivo" del 13/10/2026: 1.600 €, 1.500 documenti inclusi). Da confermare.
-    hold: 1600, holdMax: 1500,
+    // Holding: 2.500 € deciso da S. Ciancarelli il 18/11/2026. Soglia di 1.500 documenti ripresa
+    // dal Full studi (mail "Richiesta preventivo" del 13/10/2026), non ancora confermata.
+    hold: 2500, holdMax: 1500,
     ord2: 3300, ord2Max: 1500,  // ordinaria fino a 1.500 documenti
     sem: 2000, semMax: 500,     // semplificata fino a 500 documenti
     ecc: 1.5,                   // € per documento oltre soglia, a consuntivo

@@ -34,7 +34,6 @@ function renderPmi() {
   const note = [];
   if (r.sotto) note.push(['bad', `Il prezzo proposto è ${eur(r.base - r.appl)} sotto il minimo di listino (${eur(r.base)}).`]);
   else if (r.appl > r.base + 0.005) note.push(['ok', `Prezzo proposto ${eur(r.appl - r.base)} sopra il minimo di listino.`]);
-  if (d.reg === 'hold') note.push(['warn', `Holding: ${eur(L.hold)} è un prezzo in bozza, ripreso dal listino Full per gli studi. Non esiste ancora un prezzo ufficiale per la holding come PMI: confermalo prima di inviare.`]);
   if (r.oltre) note.push(['warn', `I documenti superano la soglia di ${int(r.soglia)}: l'eccedenza si paga a fine anno sul consuntivo.`]);
   else if (r.docs >= r.soglia * 0.9) note.push(['warn', `Sei entro il 10% dalla soglia di ${int(r.soglia)} documenti: conviene tenersi larghi.`]);
   showNotes($('#pmi-notes'), note);

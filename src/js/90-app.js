@@ -13,7 +13,7 @@ $('#brandmark').innerHTML = `<img src="${BRAND.logo}" alt="Yuxme">`;
   tabella('l-pmi', [
     [`Ordinaria fino a ${int(L.pmi.ord1Max)} documenti`, eur(L.pmi.ord1)], [`Ordinaria fino a ${int(L.pmi.ord2Max)} documenti`, eur(L.pmi.ord2)],
     [`Semplificata fino a ${int(L.pmi.semMax)} documenti`, eur(L.pmi.sem)],
-    [`Holding fino a ${int(L.pmi.holdMax)} documenti (bozza, da confermare)`, eur(L.pmi.hold)], ['Documento oltre soglia, a consuntivo', eur(L.pmi.ecc)],
+    [`Holding fino a ${int(L.pmi.holdMax)} documenti`, eur(L.pmi.hold)], ['Documento oltre soglia, a consuntivo', eur(L.pmi.ecc)],
     ['Corrispettivi', `${L.pmi.corr} documenti l'anno`], REGOLA]);
   tabella('l-full', [
     ['Ordinaria operativa', eur(L.full.op)], ['Ordinaria holding', eur(L.full.hold)],
