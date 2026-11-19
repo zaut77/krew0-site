@@ -41,6 +41,29 @@ async function savePdf(doc, nome) {
   }
 }
 
+/**
+ * Consegna un file qualsiasi (es. il modulo Excel), come savePdf.
+ * @param {ArrayBuffer} data
+ * @returns {Promise<string>} messaggio da mostrare
+ */
+async function saveFile(data, filename, mime) {
+  if (STANDALONE) {
+    const url = URL.createObjectURL(new Blob([data], { type: mime }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return 'File scaricato.';
+  }
+  const dl = await window.claude.use('downloads');
+  if (!dl) return 'Da questa vista il download non è disponibile. Apri la pagina su claude.ai e riprova.';
+  try { await dl.save({ filename, data }); return 'File salvato.'; }
+  catch (err) {
+    if (err && err.code === 'declined') return 'Download annullato.';
+    if (err && err.code === 'rate_limited') return 'C\'è già una richiesta di download aperta: confermala o riprova tra poco.';
+    throw err;
+  }
+}
+
 const FINE = ' Quando hai finito, premi "Cancella i dati".';
 
 /* ---- scarica il PDF (preventivo: data-pdf="pmi|st"; contratto: "pmi-c|st-c") ---- */
@@ -53,6 +76,28 @@ document.addEventListener('click', async e => {
     const esito = contratto ? await savePdf(makeContractPdf(key), C[key].file) : await savePdf(makePdf(Q[k]), Q[k].file);
     pdfMsg(k, esito + FINE);
   } catch (err) { pdfMsg(k, 'Non sono riuscito a creare il PDF. Riprova.'); }
+});
+
+/* ---- contratto vuoto (data-blank="pmi|st") ----
+ * Stessa grafica del contratto compilato, ma con tutti i campi in bianco (prezzi
+ * compresi) da compilare a mano. Per gli studi contiene tutti i moduli d'ordine
+ * (Light, Full non holding, Full holding) con righe vuote. Non usa né modifica
+ * i dati inseriti: al termine il contratto compilato torna com'era. */
+const RIGHE_VUOTE = 12;
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-blank]'); if (!b) return;
+  const c = b.dataset.blank, k = c + '-c', prima = { dsl: C[c].dsl, tabs: C[c].tabs };
+  pdfMsg(k, '');
+  try {
+    VUOTO = true;
+    if (c === 'st') {
+      C.st.dsl = dslStudio({ light: true, fullnh: true, fullh: true, fullSem: false }, true, false, UNITA_FULL[$('#st-ecc-u').value === 'riga' ? 'riga' : 'doc']);
+      const vuota = cols => ({ cols, rows: Array.from({ length: RIGHE_VUOTE }, (_, i) => ({ id: 'v' + i, cells: cols.map(() => '') })) });
+      C.st.tabs = { light: vuota(TABCOLS.concat(['Righe/anno (stima)', 'Stima annua'])), fullnh: vuota(TABCOLS.concat(['Documenti/anno', 'Compenso annuale'])), fullh: vuota(TABCOLS.concat(['Documenti/anno', 'Compenso annuale'])) };
+    }
+    pdfMsg(k, await savePdf(makeContractPdf(c), CONTRATTO_FILE[c]));
+  } catch (err) { pdfMsg(k, 'Non sono riuscito a creare il contratto vuoto. Riprova.'); }
+  finally { VUOTO = false; C[c].dsl = prima.dsl; C[c].tabs = prima.tabs; }
 });
 
 /* ---- invia per email ----
@@ -197,7 +242,7 @@ function wipeAll(motivo) {
   pmi.reg = 'ord';
   $('#pmi-reg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.r === 'ord'));
   for (const k of ['pmi', 'st']) { C[k].user = {}; C[k].auto = {}; }
-  Object.keys(TIPI).forEach(t => { S.comp[t] = { n: num($(`#c-${t}-n`).value), docs: num($(`#c-${t}-docs`).value), serv: $(`#c-${t}-serv`).value }; });
+  Object.keys(TIPI).forEach(t => { S.comp[t] = { n: num($(`#c-${t}-n`).value), docs: num($(`#c-${t}-docs`).value), rg: num($(`#c-${t}-rg`).value), serv: $(`#c-${t}-serv`).value }; });
   if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
   chiudiViewer();
   ['pmi', 'st'].forEach(k => mostraCodice(k, false));

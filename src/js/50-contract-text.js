@@ -161,7 +161,9 @@ ${SEPA('Yuxme S.r.l.')}`;
 
 const ST_INTRO=`Il Servizio consiste nella fornitura di un'infrastruttura tecnologica integrata (Gestionale, Web App e AI) finalizzata all'automazione del data entry contabile e al servizio di consulenza in ambito contabile e dichiarativi fiscali.
 Con il servizio full viene concesso, per ogni utente del Cliente, l’accesso alla piattaforma integrata con IA per l’emissione, la ricezione e il caricamento dei documenti, la consultazione quotidiana di dashboard con i principali dati contabili aggiornati, la tenuta della contabilità ed elaborazione adempimenti fiscali, il supporto di un Cont Controller dedicato, che registrerà e supervisionerà la contabilità e curerà l’elaborazione dei dichiarativi routinari, Accounting Manager che svolgerà l’attività di consulenza periodica oltre che chisura delle situazioni annuali con calcolo imposte, elaborazione dichiarativi e deposito di Bilanci.`;
-const dslStudio=(has,cond,bozza)=>`# CONTRATTO DI SERVIZI LICENZA D'USO PIATTAFORMA, SUPPORTO CONTABILE, FULL ASSISTANCE (PARTNER/PROFESSIONISTA)
+/* u = unità dell'eccedenza Full scelta nel menu del contratto (61): documenti o righe di libro giornale.
+ * has.fullSem = ci sono clienti Full in semplificata, con soglia e prezzo propri. */
+const dslStudio=(has,cond,bozza,u)=>`# CONTRATTO DI SERVIZI LICENZA D'USO PIATTAFORMA, SUPPORTO CONTABILE, FULL ASSISTANCE (PARTNER/PROFESSIONISTA)
 La società [[soc|denominazione dello studio]] con sede in [[sede|sede]] codice fiscale e partita iva [[piva|codice fiscale e partita IVA]] nella persona del suo legale rappresentante Dott. [[sig|nome e cognome]] , nato a [[natoA|luogo]] ([[natoPr|prov.]] ) il [[natoIl|data]] codice fiscale [[cf|codice fiscale]] , domiciliato in [[dom|domicilio]] Iscritto all'Ordine dei Dottori Commercialisti e degli Esperti Contabili di [[ordine|sede dell'Ordine]] al n. [[ordN|numero]] sez. [[ordSez|sezione]] , di seguito “Professionista” .
 = E
 YUXME SRL (divisione software del gruppo Allcore S.p.A.) con sede in Milano, Via San Gregorio n. 55 - 20124 Milano partita I.V.A. 10819810960, PEC: yuxme@legal.email.it, in persona del legale rappresentante Andrea Agnoli, PEC: yuxme@legal.email.it, di seguito anche “Yuxme” o “Società di Servizi” che opera anche attraverso il ricorso a collaboratori, piattaforme web, subfornitori, risorse umane dislocate all’interno dell’Unione Europea, ricorrendo esclusivamente a professionisti abilitati nelle materie riservate, anche connesse o strumentali
@@ -228,9 +230,9 @@ Per le prestazioni di cui al § 1. (Gestione contabile) il Professionista corris
 COSTO FISSO: [[lFisso|importo]]€ + iva annui (pari a [[lMese|importo]]€ +iva mensili) per ogni cliente attivato
 COSTO VARIABILE: [[lRiga|importo]]€ + iva per ogni riga contabilizzata
 Qualora appositamente selezionata, per le prestazioni di cui al § 2. (Modalità Full Assistance) il Professionista corrisponderà a Yuxme:
-COSTO FISSO: [[fOp|importo]] + iva annui (pari a € [[fOpM|importo]] +iva mensili) per ogni cliente finale non holding con n.[[fDoc|numero]] documenti contabili compresi nel prezzo;
-COSTO FISSO: [[fHold|importo]] + iva annui (pari a € [[fHoldM|importo]] +iva mensili) per ogni cliente finale holding con n.[[fDoc|numero]] documenti contabili compresi nel prezzo;
-COSTO VARIABILE: [[fEcc|importo]]€ + iva per ogni documento eccedente contabilizzato
+COSTO FISSO: [[fOp|importo]] + iva annui (pari a € [[fOpM|importo]] +iva mensili) per ogni cliente finale non holding con n.[[fDoc|numero]] ${u.plur} ${u.compresi} nel prezzo${has.fullSem?` (n.[[fDocS|numero]] ${u.plur} per i clienti in contabilità semplificata)`:''};
+COSTO FISSO: [[fHold|importo]] + iva annui (pari a € [[fHoldM|importo]] +iva mensili) per ogni cliente finale holding con n.[[fDocH|numero]] ${u.plur} ${u.compresi} nel prezzo;
+COSTO VARIABILE: [[fEcc|importo]]€ + iva per ogni ${u.sing}${has.fullSem&&!u.riga?' ([[fEccS|importo]]€ + iva per i clienti in contabilità semplificata)':''}
 ${cond?'CONDIZIONI PARTICOLARI: [[cond|condizioni particolari]]':''}
 Mese Decorrenza: il corrispettivo fisso e/o variabile del servizio di gestioni contabile e/o modalità full assistance per singolo cliente decorre dal mese di attivazione per intero.
 Il pagamento avverrà in via anticipata entro il giorno 5 di ogni mese tramite addebito SEPA. Yuxme si riserva la facoltà di sospendere o interrompere il servizio di registrazione contabile ex art. 1460 c.c. qualora il Professionista non dovesse corrispondere a Yuxme gli importi tra di essi concordati relativi alla registrazione contabile dei documenti caricati dall’UTENTE.
@@ -276,8 +278,8 @@ ${bozza?'BOZZA IN REVISIONE: i clienti in regime semplificato e forfettario sono
 @tab:fullnh
 PRICING:
 COMPENSO ANNUALE : indicato in tabella per ciascun cliente attivato, + iva
-NUMERO DI DOCUMENTI DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDoc|numero]]
-COMPENSO PER DOCUMENTI EXTRA: [[fEcc|importo]] € a documento
+NUMERO DI ${u.PLUR} DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDoc|numero]]${has.fullSem?' (contabilità semplificata: [[fDocS|numero]])':''}
+COMPENSO PER ${u.EXTRA}: [[fEcc|importo]] € ${u.a}${has.fullSem&&!u.riga?' (contabilità semplificata: [[fEccS|importo]] €)':''}
 DECORRENZA: il corrispettivo del servizio per singolo cliente attivato decorre dal mese di attivazione per intero.`:''}
 ${has.fullh?`@br
 @style:modulo
@@ -287,8 +289,8 @@ ${ST_INTRO}
 @tab:fullh
 PRICING:
 COMPENSO ANNUALE: indicato in tabella per ciascun cliente attivato, + iva
-NUMERO DI DOCUMENTI DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDoc|numero]]
-COMPENSO PER DOCUMENTI EXTRA: [[fEcc|importo]] € a documento
+NUMERO DI ${u.PLUR} DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDocH|numero]]
+COMPENSO PER ${u.EXTRA}: [[fEcc|importo]] € ${u.a}
 DECORRENZA: il corrispettivo del servizio per singolo cliente attivato decorre dal mese di attivazione per intero.`:''}
 ${SEPA('Yuxme S.r.l.')}
 ${PRIVACY}`;

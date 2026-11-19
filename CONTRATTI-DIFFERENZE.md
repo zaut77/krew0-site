@@ -53,6 +53,9 @@ altre sono adattamenti tecnici da far validare a chi gestisce i contratti.
 | S11b | Nessuna tariffa per i forfettari in Light | 200 € annui fissi per cliente, indicati nella tabella del modulo Light e nella riga "Condizioni particolari" | **[decisione]** del 14/11/2026 |
 | S12 | Modulo Light: tre voci a elenco puntato con titolo in grassetto | Stesse voci come paragrafi | Impaginazione |
 | S13 | Righe di firma "______________, il______________" | "[luogo], il [data]" | Vedi 2 |
+| S14 | Full: 1.500 documenti inclusi per holding e non holding | Ordinaria operativa 1.500 documenti, holding e semplificata 500 | **[decisione]** del 19/11/2026 |
+| S15 | Full: "1,50€ + iva per ogni documento eccedente" | Prezzo per riga della fascia; un menu sceglie se scriverlo "a documento" (riga × 6, o × 3 per le semplificate) o "a riga di libro giornale" | **[decisione]** del 19/11/2026, da allineare con la mail di Parretta del 19/11 |
+| S16 | Modulo Light: colonna documenti | Colonna "Righe/anno (stima)" | Il Light si paga a riga |
 
 ## Aspetto del PDF
 
@@ -61,3 +64,10 @@ altre sono adattamenti tecnici da far validare a chi gestisce i contratti.
   mandato SEPA a tabelle con simbolo e freccia.
 - Non identici: l'andata a capo riga per riga; nel contratto studi anche la
   divisione in pagine, perché l'originale Word non ha interruzioni fisse.
+
+## Contratto vuoto
+
+Il pulsante "Contratto vuoto" scarica lo stesso PDF con tutti i campi in
+bianco, prezzi compresi; per gli studi contiene tutti e tre i moduli d'ordine
+con 12 righe vuote. File: yuxme_pmi.pdf e yuxme_commercialisti.pdf (quello
+compilato aggiunge "_ragione sociale").

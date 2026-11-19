@@ -4,10 +4,10 @@
 const fs = require('fs'), path = require('path'), assert = require('assert');
 const src = f => fs.readFileSync(path.join(__dirname, '../src/js', f), 'utf8');
 const api = new Function(src('00-config.js') + src('05-abi.js') + src('20-calc.js') + src('30-validators.js') +
-  ';return {LISTINO,ABI,fascia,prezzoCliente,calcPmi,calcStudio,vCf,vPiva,vIban,vDate,vEmail,ibanInfo,normVal};')();
-const { ABI, fascia, calcPmi, calcStudio, vCf, vPiva, vIban, vDate, vEmail, ibanInfo, normVal } = api;
+  ';return {LISTINO,ABI,fascia,prezzoCliente,righeCliente,calcPmi,calcStudio,vCf,vPiva,vIban,vDate,vEmail,ibanInfo,normVal};')();
+const { ABI, fascia, prezzoCliente, righeCliente, calcPmi, calcStudio, vCf, vPiva, vIban, vDate, vEmail, ibanInfo, normVal } = api;
 const quasi = (a, b) => assert.ok(Math.abs(a - b) < 0.005, `${a} ≠ ${b}`);
-const riga = (tipo, serv, n, docs, ov = null) => ({ tipo, serv, n, docs, ov, units: [] });
+const riga = (tipo, serv, n, docs, ov = null, extra = {}) => ({ tipo, serv, n, docs, ov, units: [], ...extra });
 let n = 0; const test = (nome, fn) => { fn(); n++; console.log('ok  ' + nome); };
 
 test('fasce Light: confini', () => {
@@ -25,8 +25,29 @@ test('Full: 40 ordinarie + 60 semplificate + 30 forfettarie a 200 (mail del 13/1
   const r = calcStudio([riga('op', 'full', 40, 500), riga('sem', 'full', 60, 300), riga('forf', 'full', 30, 50)], 0, 0, 50);
   quasi(r.app, 40 * 2700 + 60 * 1600 + 30 * 200);
 });
-test('Full: documenti oltre 1.500 a 1,50', () => {
-  quasi(calcStudio([riga('op', 'full', 1, 1700)], 0, 0, 50).app, 2700 + 200 * 1.5);
+test('Full: soglie in righe (ordinaria 1.500 doc = 9.000 righe; semplificata e holding 500 doc)', () => {
+  const p = c => prezzoCliente(c, 0.30);
+  assert.equal(p({ tipo: 'op', serv: 'full', docs: 1500 }).soglia, 9000);
+  assert.equal(p({ tipo: 'sem', serv: 'full', docs: 500 }).soglia, 1500);
+  assert.equal(p({ tipo: 'hold', serv: 'full', docs: 500 }).soglia, 3000);
+  // eccedenza: righe oltre soglia × prezzo per riga della fascia
+  quasi(p({ tipo: 'op', serv: 'full', docs: 1700 }).listino, 2700 + 200 * 6 * 0.30);
+  quasi(p({ tipo: 'sem', serv: 'full', docs: 600 }).listino, 1600 + 100 * 3 * 0.30);
+  quasi(p({ tipo: 'hold', serv: 'full', docs: 0, rg: 3500 }).listino, 1600 + 500 * 0.30);
+});
+test('Full: la fascia viene dalle sole licenze Light e Light Plus', () => {
+  const r = calcStudio([riga('op', 'light', 15, 100), riga('op', 'full', 1, 1600)], 0, 0, 50);
+  assert.equal(r.nL, 15); quasi(r.rows[1].listino, 2700 + 600 * 0.27);
+  quasi(calcStudio([riga('op', 'full', 1, 1600)], 0, 0, 50).app, 2700 + 600 * 0.30);   // nessun Light: 0,30
+});
+test('righe libro giornale: sostituiscono le fatture, senza moltiplicatore', () => {
+  assert.equal(righeCliente({ tipo: 'op', docs: 200 }), 1200);
+  assert.equal(righeCliente({ tipo: 'op', docs: 200, rg: 900 }), 900);               // le fatture non contano
+  assert.equal(righeCliente({ tipo: 'sem', docs: 0, rg: 900, co: 12 }), 900 + 36);   // corrispettivi sempre × 3
+  assert.equal(righeCliente({ tipo: 'op', docs: 100, co: 12, pe: true }), (100 + 12 + 60) * 6);
+  const p = prezzoCliente({ tipo: 'op', serv: 'plus', docs: 0, rg: 1000 }, 0.30);
+  quasi(p.canone, 600); quasi(p.variabile, 300); quasi(p.listino, 900);
+  quasi(prezzoCliente({ tipo: 'forf', serv: 'light', docs: 0, rg: 5000 }, 0.30).listino, 200);
 });
 test('sconto e mesi agevolati solo sul Light Plus', () => {
   const r = calcStudio([riga('op', 'light', 4, 750), riga('sem', 'plus', 6, 350)], 10, 2, 100);
@@ -35,9 +56,16 @@ test('sconto e mesi agevolati solo sul Light Plus', () => {
   quasi(r.primo, r.app - r.sc - r.promo);
   quasi(r.regime, r.app - r.sc);
 });
-test('cliente singolo: documenti = vendite + acquisti + corrispettivi', () => {
-  // semplificata con 120 + 200 + 12 = 332 documenti in Light: 600 + 332 × 3 × 0,30 = 898,80
-  quasi(calcStudio([riga('sem', 'light', 1, 120 + 200 + 12)], 0, 0, 50).app, 898.80);
+test('cliente singolo: fatture + corrispettivi, × 3 per le semplificate', () => {
+  // semplificata con 120 + 200 fatture e 12 corrispettivi in Light: 600 + 332 × 3 × 0,30 = 898,80
+  quasi(calcStudio([riga('sem', 'light', 1, 120 + 200, null, { co: 12 })], 0, 0, 50).app, 898.80);
+});
+test('canone mensile: a regime e nei mesi agevolati', () => {
+  const r = calcStudio([riga('op', 'plus', 1, 500)], 10, 2, 50);                    // 1.500 a listino
+  quasi(r.canoni, 600); quasi(r.variabili, 900);
+  quasi(r.mese, 1350 / 12); quasi(r.meseIva, 1350 * 1.22 / 12);
+  quasi(r.meseAgev, 1350 * 0.5 / 12);
+  quasi(r.primo, 1350 - 112.5);
 });
 test('forfettarie: 200 fissi anche in Light e Light Plus; contano per la fascia', () => {
   quasi(calcStudio([riga('forf', 'light', 3, 900)], 0, 0, 50).app, 600);          // i documenti non contano
@@ -57,6 +85,8 @@ test('PMI: fasce ed eccedenza', () => {
   assert.equal(s.docs, 600); quasi(s.ecc, 150); quasi(s.imp, 2150);
   assert.equal(calcPmi({ reg: 'ord', att: 100, pas: 100, corr: false, ov: 2000 }).sotto, true);
   const h = calcPmi({ reg: 'hold', att: 10, pas: 40, corr: false, ov: null });      // holding: 2.500
+  const pe = calcPmi({ reg: 'ord', att: 200, pas: 200, corr: true, pers: true, ov: null });
+  assert.equal(pe.docs, 472); quasi(pe.mese, 2900 / 12); quasi(pe.meseIva, 2900 * 1.22 / 12);
   quasi(h.base, 2500); assert.equal(h.soglia, 1500); assert.equal(h.nome, 'Holding'); quasi(h.tot, 3050);
   assert.equal(calcPmi({ reg: 'hold', att: 10, pas: 40, corr: false, ov: 2400 }).sotto, true);
 });

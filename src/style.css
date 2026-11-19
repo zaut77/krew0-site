@@ -74,12 +74,12 @@ td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle;whi
 tr:last-child td{border-bottom:0}
 td.num,th.num{text-align:right}
 td input,td select{padding:6px 8px}
-td .w-name{min-width:130px} td .w-sel{min-width:150px} td .w-num{width:92px;text-align:right}
+td .w-name{min-width:130px} td .w-sel{min-width:150px} td .w-num{width:80px;text-align:right}
 .tiers{display:flex;flex-wrap:wrap;gap:6px}
 .tiers span{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .tiers span.on{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:600}
 .hint{font-size:12.5px;color:var(--muted)}
-.comp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.6fr) minmax(0,.8fr) minmax(0,1.6fr);gap:8px 10px;align-items:center}
+.comp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.6fr) minmax(0,.8fr) minmax(0,.8fr) minmax(0,1.6fr);gap:8px 10px;align-items:center}
 .comp .h{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 @media (max-width:640px){.comp{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.comp .h{display:none}.comp .t{grid-column:1/-1;font-weight:600;margin-top:8px}.comp .e{grid-column:1/-1}}
 .ro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;font-size:14px;font-variant-numeric:tabular-nums}
@@ -99,6 +99,14 @@ td .w-name{min-width:130px} td .w-sel{min-width:150px} td .w-num{width:92px;text
 .sheet table{font-size:12.5px}
 .sheet th{background:var(--paper-accent);color:#fff;border:0;padding:8px}
 .sheet td{border-bottom:1px solid var(--paper-line);padding:7px 8px;white-space:normal}
+/* la tabella resta dentro i margini del foglio: intestazioni a capo, importi su una riga;
+   se proprio non entra (telefono) scorre dentro il foglio, non fuori */
+.sheet .sh-tab{overflow-x:auto;min-width:0}
+.sheet th{white-space:normal;line-height:1.25;vertical-align:bottom}
+.sheet td.num{white-space:nowrap}
+.sheet.small table{font-size:11px}
+.sheet.small th{font-size:9.5px;letter-spacing:.02em;padding:6px 5px}
+.sheet.small td{padding:6px 5px}
 .sheet .sh-tot{align-self:flex-end;width:min(100%,340px);display:flex;flex-direction:column;gap:6px;font-variant-numeric:tabular-nums}
 .sheet .sh-tot div{display:flex;justify-content:space-between;gap:16px}
 .sheet .sh-tot div span:first-child{color:var(--paper-muted)}
@@ -176,3 +184,8 @@ textarea{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);borde
 td .w-name{min-width:120px} td .w-sel{min-width:118px} td .w-num{width:78px}
 .scroll th,.scroll td{padding-left:5px;padding-right:5px}
 td .w-num{width:72px}
+
+/* fatture che non contano perché lo studio ha indicato le righe di libro giornale */
+input.off{opacity:.45;text-decoration:line-through}
+td.chk{text-align:center}
+.mailtxt{white-space:pre-wrap;font-size:13px;background:var(--soft, #f3f6fb);border-radius:8px;padding:10px 12px;margin:6px 0}

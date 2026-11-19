@@ -14,11 +14,12 @@ const pdfTxt = s => String(s).replace(/−/g, '-').replace(/[  ]/g, ' ').rep
 /** Anteprima del preventivo dentro l'elemento con quell'id. */
 function renderSheet(id, q) {
   const cls = c => c.r ? ' class="num"' : '';
+  $('#' + id).classList.toggle('small', !!q.small);   // molte colonne: caratteri più piccoli
   $('#' + id).innerHTML = `
     <div class="sh-top"><img src="${BRAND.logo}" alt="Yuxme"><div><b>Preventivo</b>${esc(q.data)}</div></div>
     <div class="sh-meta">${q.meta.map(m => `<div><span>${esc(m[0])}</span>${esc(m[1])}</div>`).join('')}</div>
-    <table><thead><tr>${q.cols.map(c => `<th${cls(c)}>${esc(c.t)}</th>`).join('')}</tr></thead>
-      <tbody>${q.rows.map(r => `<tr>${r.map((v, i) => `<td${cls(q.cols[i])}>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <div class="sh-tab"><table><thead><tr>${q.cols.map(c => `<th${cls(c)}>${esc(c.t)}</th>`).join('')}</tr></thead>
+      <tbody>${q.rows.map(r => `<tr>${r.map((v, i) => `<td${cls(q.cols[i])}>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     <div class="sh-tot">${q.totals.map(t => `<div${t[2] ? ' class="big"' : ''}><span>${esc(t[0])}</span><span>${esc(t[1])}</span></div>`).join('')}</div>
     <div class="sh-notes">${q.notes.map(n => `<p>${esc(n)}</p>`).join('')}</div>`;
 }
@@ -44,20 +45,21 @@ function makePdf(q) {
   y += 13;
 
   // righe
-  const destra = {}; q.cols.forEach((c, i) => { if (c.r) destra[i] = { halign: 'right' }; });
+  // colonne numeriche: allineate a destra e mai spezzate su due righe; vanno a capo i testi
+  const destra = {}; q.cols.forEach((c, i) => { if (c.r) destra[i] = { halign: 'right', cellWidth: 'wrap' }; });
   doc.autoTable({
     startY: y, margin: { left: M, right: M, bottom: 18 }, head: [q.cols.map(c => c.t)], body: q.rows.map(r => r.map(pdfTxt)),
-    styles: { font: 'helvetica', fontSize: 9, cellPadding: 2.2, textColor: K.ink, lineColor: [217, 222, 232] },
-    headStyles: { fillColor: K.accent, textColor: 255, fontStyle: 'bold', fontSize: 8.5 },
+    styles: { font: 'helvetica', fontSize: q.small ? 7.8 : 9, cellPadding: q.small ? 1.8 : 2.2, textColor: K.ink, lineColor: [217, 222, 232] },
+    headStyles: { fillColor: K.accent, textColor: 255, fontStyle: 'bold', fontSize: q.small ? 7.5 : 8.5 },
     alternateRowStyles: { fillColor: [248, 249, 252] }, columnStyles: destra,
     didParseCell: d => { if (d.section === 'head' && q.cols[d.column.index].r) d.cell.styles.halign = 'right'; },
   });
 
   // totali, allineati a destra
   doc.autoTable({
-    startY: doc.lastAutoTable.finalY + 7, margin: { left: W - M - 88, right: M, bottom: 18 }, theme: 'plain', pageBreak: 'avoid',
+    startY: doc.lastAutoTable.finalY + 7, margin: { left: W - M - 110, right: M, bottom: 18 }, theme: 'plain', pageBreak: 'avoid',
     body: q.totals.map(t => [pdfTxt(t[0]), pdfTxt(t[1])]),
-    styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 1.8, textColor: K.ink }, columnStyles: { 0: { textColor: K.muted }, 1: { halign: 'right' } },
+    styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 1.8, textColor: K.ink }, columnStyles: { 0: { textColor: K.muted }, 1: { halign: 'right', cellWidth: 34 } },
     didParseCell: d => { if (q.totals[d.row.index][2]) Object.assign(d.cell.styles, { fillColor: K.soft, fontStyle: 'bold', fontSize: 11, textColor: K.accent, cellPadding: 3 }); },
   });
 

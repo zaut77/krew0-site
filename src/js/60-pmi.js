@@ -9,7 +9,7 @@ const pmi = { reg: 'ord' };
 /** Dati del modulo PMI nella forma attesa da calcPmi. */
 function leggiPmi() {
   const ov = $('#pmi-ov').value;
-  return { reg: pmi.reg, att: num($('#pmi-att').value), pas: num($('#pmi-pas').value), corr: $('#pmi-corr').checked, ov: ov === '' ? null : num(ov) };
+  return { reg: pmi.reg, att: num($('#pmi-att').value), pas: num($('#pmi-pas').value), corr: $('#pmi-corr').checked, pers: $('#pmi-pers').checked, ov: ov === '' ? null : num(ov) };
 }
 
 function renderPmi() {
@@ -29,7 +29,8 @@ function renderPmi() {
     <div><span>Imponibile annuo</span><span>${eur(r.imp)}</span></div>
     <div><span>IVA ${LISTINO.iva}%</span><span>${eur(r.iva)}</span></div>
     <div class="tot"><span>Totale annuo</span><span>${eur(r.tot)}</span></div>
-    <div><span>Pari a, al mese (imponibile)</span><span>${eur(r.imp / 12)}</span></div>`;
+    <div><span>Canone mensile, IVA esclusa</span><span>${eur(r.mese)}</span></div>
+    <div><span>Canone mensile, IVA inclusa</span><span>${eur(r.meseIva)}</span></div>`;
 
   const note = [];
   if (r.sotto) note.push(['bad', `Il prezzo proposto è ${eur(r.base - r.appl)} sotto il minimo di listino (${eur(r.base)}).`]);
@@ -49,9 +50,11 @@ function renderPmi() {
     cols: [{ t: 'Voce' }, { t: 'Dettaglio' }, { t: 'Importo annuo', r: 1 }],
     rows: [['Canone annuo', `${r.nome}, fino a ${int(r.soglia)} documenti`, eur(r.appl)]]
       .concat(r.oltre ? [['Eccedenza stimata, a consuntivo', `${int(r.oltre)} documenti × ${eur(L.ecc)}`, eur(r.ecc)]] : []),
-    totals: [['Imponibile annuo', eur(r.imp)], [`IVA ${LISTINO.iva}%`, eur(r.iva)], ['Totale annuo', eur(r.tot), 1], ['Pari a, al mese (imponibile)', eur(r.imp / 12)]],
+    totals: [['Imponibile annuo', eur(r.imp)], [`IVA ${LISTINO.iva}%`, eur(r.iva)], ['Totale annuo', eur(r.tot), 1],
+      ['Canone mensile, IVA esclusa', eur(r.mese)], ['Canone mensile, IVA inclusa', eur(r.meseIva)]],
     notes: ['Importi annui.',
-      `Documenti = fatture attive, fatture passive e ricevute${d.corr ? `, più ${L.corr} documenti l'anno per i corrispettivi` : ''}.`,
+      `Documenti = fatture attive, fatture passive e ricevute${d.corr ? `, più ${L.corr} documenti l'anno per i corrispettivi` : ''}${d.pers ? `, più ${L.pers} documenti l'anno per il prospetto del personale` : ''}.`,
+      'Canone mensile = canone annuo diviso 12; l\'eventuale eccedenza si paga a fine anno.',
       `I documenti oltre ${int(r.soglia)} costano ${eur(L.ecc)} l'uno e si calcolano a fine anno sul consuntivo.`],
   };
   renderSheet('pmi-sheet', Q.pmi);
@@ -60,7 +63,7 @@ function renderPmi() {
   const a = C.pmi.auto;
   a.soc = nome; a.canone = dec(r.appl / 12); a.soglia = int(r.soglia); a.data = today(); a.sepa = '1';
   C.pmi.min = { canone: r.base / 12 };
-  C.pmi.file = 'Contratto Yuxme PMI' + (nome ? ' - ' + nome : '');
+  C.pmi.file = CONTRATTO_FILE.pmi + (nome ? '_' + nome : '');
   renderContract('pmi');
   syncOutput('pmi');
 }

@@ -11,9 +11,11 @@
  * ========================================================================== */
 
 /** Stato dei due contratti. min = soglie sotto cui un prezzo non può scendere. */
+/** Nome dei file PDF dei contratti; quello compilato aggiunge "_ragione sociale". */
+const CONTRATTO_FILE = { pmi: 'yuxme_pmi', st: 'yuxme_commercialisti' };
 const C = {
-  pmi: { user: {}, auto: {}, min: {}, dsl: DSL_PMI, tabs: {}, file: 'Contratto Yuxme PMI' },
-  st: { user: {}, auto: {}, min: {}, dsl: '', tabs: {}, file: 'Contratto Yuxme' },
+  pmi: { user: {}, auto: {}, min: {}, dsl: DSL_PMI, tabs: {}, file: CONTRATTO_FILE.pmi },
+  st: { user: {}, auto: {}, min: {}, dsl: '', tabs: {}, file: CONTRATTO_FILE.st },
 };
 
 /** Campo ripetuto → campo della prima parte da cui prende il valore. */
@@ -23,7 +25,7 @@ const FTYPE = { cf: 'cf', sCf: 'cf', cfAz: 'cfpiva', sPiva: 'cfpiva', piva: 'piv
 /** Nel contratto studi "piva" è «codice fiscale e partita iva»: accetta entrambi. */
 const ftype = (c, k) => c === 'st' && k === 'piva' ? 'cfpiva' : FTYPE[k];
 /** Nomi leggibili dei campi prezzo, per i messaggi d'errore. */
-const NOMI = { canone: 'canone mensile', lFisso: 'costo fisso Light', lMese: 'costo fisso mensile Light', lRiga: 'prezzo per riga', fOp: 'costo fisso Full non holding', fOpM: 'mensile Full non holding', fHold: 'costo fisso Full holding', fHoldM: 'mensile Full holding', fEcc: 'costo per documento eccedente' };
+const NOMI = { canone: 'canone mensile', lFisso: 'costo fisso Light', lMese: 'costo fisso mensile Light', lRiga: 'prezzo per riga', fOp: 'costo fisso Full non holding', fOpM: 'mensile Full non holding', fHold: 'costo fisso Full holding', fHoldM: 'mensile Full holding', fEcc: 'costo per documento o riga eccedente', fEccS: 'costo per documento eccedente, semplificate' };
 const TABCOLS = ['Ragione sociale', 'Rappresentante legale', 'P.Iva', 'Regime', 'Periodicità iva'];
 /** Campo modificabile di ogni colonna delle tabelle clienti (null = sola lettura). */
 const TABFIELDS = ['nome', 'rl', 'pi', null, 'per'];
@@ -60,7 +62,9 @@ function derived(c, k) {
 }
 
 /** Valore corrente di un campo (vedi l'ordine in testa al file). */
-const cval = (c, k) => C[c].user[k] != null ? C[c].user[k] : (ALIAS[k] && cval(c, ALIAS[k])) || derived(c, k) || C[c].auto[k] || '';
+/** true solo mentre si genera il contratto vuoto: ogni campo resta da compilare a mano. */
+let VUOTO = false;
+const cval = (c, k) => VUOTO ? '' : C[c].user[k] != null ? C[c].user[k] : (ALIAS[k] && cval(c, ALIAS[k])) || derived(c, k) || C[c].auto[k] || '';
 
 /** Testo → blocchi { t: tipo, x: contenuto }. La sintassi è descritta in 50. */
 const parseDsl = s => s.split('\n').map(l => l.trim()).filter(Boolean).map(l =>

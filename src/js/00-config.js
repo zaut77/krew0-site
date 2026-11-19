@@ -42,7 +42,8 @@ const LISTINO = Object.freeze({
     ord2: 3300, ord2Max: 1500,  // ordinaria fino a 1.500 documenti
     sem: 2000, semMax: 500,     // semplificata fino a 500 documenti
     ecc: 1.5,                   // € per documento oltre soglia, a consuntivo
-    corr: 12,                   // documenti l'anno aggiunti se ci sono corrispettivi
+    corr: 12,                   // corrispettivi: 1 documento al mese
+    pers: 60,                   // prospetto del personale: 5 documenti al mese (regola del 19/11/2026)
   },
   light: {
     fisso: 600,                 // € l'anno per ditta, mai scontato
@@ -53,7 +54,11 @@ const LISTINO = Object.freeze({
     // Lo sconto vale sull'intero cumulo di licenze Light + Light Plus.
     fasce: [[10, 0], [20, 10], [30, 20], [50, 30], [100, 40], [null, 50]],
   },
-  full: { op: 2700, hold: 1600, sem: 1600, forf: 200, inclusi: 1500, ecc: 1.5 },
+  // Full: minimo per tipo e documenti inclusi per tipo (19/11/2026: semplificata e holding 500).
+  // I documenti inclusi diventano righe con lo stesso moltiplicatore del Light (×6 / ×3);
+  // le righe oltre soglia costano quanto una riga Light nella fascia in vigore.
+  // Le forfettarie pagano solo il fisso.
+  full: { op: 2700, hold: 1600, sem: 1600, forf: 200, inclusi: { op: 1500, hold: 500, sem: 500 } },
 });
 
 /** Tipi di cliente dello studio (chiave usata anche in LISTINO.full). */

@@ -92,12 +92,12 @@ td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle;whi
 tr:last-child td{border-bottom:0}
 td.num,th.num{text-align:right}
 td input,td select{padding:6px 8px}
-td .w-name{min-width:130px} td .w-sel{min-width:150px} td .w-num{width:92px;text-align:right}
+td .w-name{min-width:130px} td .w-sel{min-width:150px} td .w-num{width:80px;text-align:right}
 .tiers{display:flex;flex-wrap:wrap;gap:6px}
 .tiers span{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .tiers span.on{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:600}
 .hint{font-size:12.5px;color:var(--muted)}
-.comp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.6fr) minmax(0,.8fr) minmax(0,1.6fr);gap:8px 10px;align-items:center}
+.comp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.6fr) minmax(0,.8fr) minmax(0,.8fr) minmax(0,1.6fr);gap:8px 10px;align-items:center}
 .comp .h{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 @media (max-width:640px){.comp{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.comp .h{display:none}.comp .t{grid-column:1/-1;font-weight:600;margin-top:8px}.comp .e{grid-column:1/-1}}
 .ro{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 16px;font-size:14px;font-variant-numeric:tabular-nums}
@@ -117,6 +117,14 @@ td .w-name{min-width:130px} td .w-sel{min-width:150px} td .w-num{width:92px;text
 .sheet table{font-size:12.5px}
 .sheet th{background:var(--paper-accent);color:#fff;border:0;padding:8px}
 .sheet td{border-bottom:1px solid var(--paper-line);padding:7px 8px;white-space:normal}
+/* la tabella resta dentro i margini del foglio: intestazioni a capo, importi su una riga;
+   se proprio non entra (telefono) scorre dentro il foglio, non fuori */
+.sheet .sh-tab{overflow-x:auto;min-width:0}
+.sheet th{white-space:normal;line-height:1.25;vertical-align:bottom}
+.sheet td.num{white-space:nowrap}
+.sheet.small table{font-size:11px}
+.sheet.small th{font-size:9.5px;letter-spacing:.02em;padding:6px 5px}
+.sheet.small td{padding:6px 5px}
 .sheet .sh-tot{align-self:flex-end;width:min(100%,340px);display:flex;flex-direction:column;gap:6px;font-variant-numeric:tabular-nums}
 .sheet .sh-tot div{display:flex;justify-content:space-between;gap:16px}
 .sheet .sh-tot div span:first-child{color:var(--paper-muted)}
@@ -194,6 +202,11 @@ textarea{font:inherit;font-size:13px;color:var(--ink);background:var(--bg);borde
 td .w-name{min-width:120px} td .w-sel{min-width:118px} td .w-num{width:78px}
 .scroll th,.scroll td{padding-left:5px;padding-right:5px}
 td .w-num{width:72px}
+
+/* fatture che non contano perché lo studio ha indicato le righe di libro giornale */
+input.off{opacity:.45;text-decoration:line-through}
+td.chk{text-align:center}
+.mailtxt{white-space:pre-wrap;font-size:13px;background:var(--soft, #f3f6fb);border-radius:8px;padding:10px 12px;margin:6px 0}
 </style>
 </head>
 <body>
@@ -241,7 +254,8 @@ td .w-num{width:72px}
         <label class="f">Fatture attive all'anno<input autocomplete="off" id="pmi-att" type="number" min="0" inputmode="numeric" value="320"></label>
         <label class="f">Fatture passive e ricevute all'anno<input autocomplete="off" id="pmi-pas" type="number" min="0" inputmode="numeric" value="410"></label>
       </div>
-      <label class="check"><input autocomplete="off" id="pmi-corr" type="checkbox"><span>Ha corrispettivi (12 documenti l'anno in più)</span></label>
+      <label class="check"><input autocomplete="off" id="pmi-corr" type="checkbox"><span>Ha corrispettivi (1 × 12 = 12 documenti l'anno in più)</span></label>
+      <label class="check"><input autocomplete="off" id="pmi-pers" type="checkbox"><span>Ha personale dipendente: prospetto del personale (5 × 12 = 60 documenti l'anno in più)</span></label>
       <div class="grid2">
         <label class="f">Prezzo proposto, dal minimo in su<input autocomplete="off" id="pmi-ov" type="number" min="0" step="0.01" inputmode="decimal"></label>
       </div>
@@ -266,8 +280,8 @@ td .w-num{width:72px}
     <div class="sheetscroll"><div class="sheet" id="pmi-sheet"></div></div>
   </div>
   <div class="card sheetbox">
-    <div class="row" style="justify-content:space-between"><h2>Contratto PMI</h2><span class="row"><button class="btn ghost" type="button" data-view="pmi">Visualizza</button><button class="btn" type="button" data-pdf="pmi-c">Scarica il contratto in PDF</button></span></div>
-    <p class="hint">Canone mensile, soglia e ragione sociale arrivano dal preventivo qui sopra. I campi evidenziati si compilano e si correggono scrivendoci dentro; le caselle si spuntano con un clic.</p>
+    <div class="row" style="justify-content:space-between"><h2>Contratto PMI</h2><span class="row"><button class="btn ghost" type="button" data-view="pmi">Visualizza</button><button class="btn ghost" type="button" data-blank="pmi">Contratto vuoto</button><button class="btn" type="button" data-pdf="pmi-c">Scarica il contratto in PDF</button></span></div>
+    <p class="hint">Canone mensile, soglia e ragione sociale arrivano dal preventivo qui sopra. I campi evidenziati si compilano e si correggono scrivendoci dentro; le caselle si spuntano con un clic. "Contratto vuoto" scarica lo stesso contratto con tutti i campi in bianco, prezzi compresi, da compilare a mano.</p>
     <p class="hint" data-pdfmsg="pmi-c" hidden></p>
     <div class="notes" id="pmi-cerr" role="alert"></div>
     <div class="contract" id="pmi-contract"></div>
@@ -290,11 +304,32 @@ td .w-num{width:72px}
     <label class="f" style="max-width:520px">Come vuoi fare il preventivo
       <div class="seg" id="st-mode"><button type="button" data-m="cli" class="on">Cliente per cliente</button><button type="button" data-m="comp">Per composizione</button></div></label>
     <div class="box" id="st-cli-box">
-      <p class="hint">Per ogni cliente dello studio servono: riferimento, tipo di contabilità, fatture di vendita, fatture di acquisto e corrispettivi dell'anno. Puoi incollare l'elenco da Excel, con le colonne in quest'ordine, oppure aggiungere i clienti uno alla volta e scrivere i numeri nella tabella qui sotto.</p>
+      <p class="hint">Per ogni cliente dello studio servono: riferimento, tipo di contabilità, fatture di vendita e di acquisto <b>oppure</b> righe di libro giornale, corrispettivi e personale dipendente (sì/no). Il modo più sicuro: scarica il modulo Excel, mandalo allo studio e carica il file che ti restituisce. In alternativa incolla l'elenco da Excel con le colonne in quest'ordine, oppure aggiungi i clienti uno alla volta.</p>
       <div class="grid2">
         <label class="f">Esigenza dello studio (vale per i clienti che carichi; poi la cambi riga per riga)<select id="st-cli-serv"></select></label>
       </div>
-      <label class="f">Elenco copiato da Excel<textarea id="st-cli-paste" rows="5" spellcheck="false" autocomplete="off" placeholder="Rossi Srl&#9;ordinaria&#9;320&#9;410&#9;0"></textarea></label>
+      <div class="row">
+        <button class="btn ghost" type="button" id="st-mod-get">1. Scarica il modulo Excel</button>
+        <label class="btn" for="st-mod-file" style="cursor:pointer">2. Carica il modulo compilato</label>
+        <input id="st-mod-file" type="file" accept=".xlsx,.csv" hidden>
+      </div>
+      <details class="cdata"><summary>Testo della mail per lo studio</summary>
+        <div class="mailtxt" id="st-mail-txt">Buongiorno,
+
+per prepararvi il preventivo Yuxme vi chiediamo di compilare il modulo Excel allegato, una riga per ogni cliente dello studio:
+- riferimento del cliente (nome o codice);
+- tipo di contabilità: ordinaria, semplificata, forfettaria o holding (si sceglie dal menu);
+- numero di fatture di vendita e di acquisto dell'anno, oppure, se lo avete, il numero di righe di libro giornale dell'anno (in questo caso le fatture non servono);
+- numero di corrispettivi dell'anno, se il cliente li ha;
+- se il cliente ha personale dipendente (Sì/No), per il prospetto del personale.
+
+Vi chiediamo di non cambiare l'ordine delle colonne e di non aggiungere righe sopra l'intestazione: così leggiamo i dati senza errori.
+
+Restiamo a disposizione per qualsiasi chiarimento.
+Cordiali saluti</div>
+        <div class="row"><button class="btn ghost" type="button" id="st-mail-copy">Copia il testo</button><span class="hint" id="st-mail-msg"></span></div>
+      </details>
+      <label class="f">Elenco copiato da Excel (colonne: riferimento, tipo, fatture di vendita, fatture di acquisto, righe libro giornale, corrispettivi, personale sì/no)<textarea id="st-cli-paste" rows="5" spellcheck="false" autocomplete="off" placeholder="Rossi Srl&#9;ordinaria&#9;320&#9;410&#9;&#9;12&#9;sì"></textarea></label>
       <div class="row">
         <button class="btn" type="button" id="st-cli-go">Carica l'elenco</button>
         <button class="btn ghost" type="button" id="st-cli-add">Aggiungi un cliente</button>
@@ -304,7 +339,7 @@ td .w-num{width:72px}
     </div>
     <div class="box" id="st-comp-box" hidden>
     <div class="comp" id="comp">
-      <span class="h">Tipo di cliente</span><span class="h">Quanti</span><span class="h">Documenti/anno (media)</span><span class="h">Esigenza dello studio</span>
+      <span class="h">Tipo di cliente</span><span class="h">Quanti</span><span class="h">Documenti/anno (media)</span><span class="h">Oppure righe libro giornale (media)</span><span class="h">Esigenza dello studio</span>
     </div>
     <div class="row">
       <button class="btn" type="button" id="st-gen">Crea il preventivo</button>
@@ -353,8 +388,10 @@ td .w-num{width:72px}
     <div class="sheetscroll"><div class="sheet" id="st-sheet"></div></div>
   </div>
   <div class="card sheetbox">
-    <div class="row" style="justify-content:space-between"><h2>Contratto studio</h2><span class="row"><button class="btn ghost" type="button" data-view="st">Visualizza</button><button class="btn" type="button" data-pdf="st-c">Scarica il contratto in PDF</button></span></div>
-    <p class="hint">Prezzi, sconti ed elenco clienti dei moduli d'ordine arrivano dal preventivo qui sopra. I campi evidenziati si compilano e si correggono scrivendoci dentro; le caselle si spuntano con un clic.</p>
+    <div class="row" style="justify-content:space-between"><h2>Contratto studio</h2><span class="row"><button class="btn ghost" type="button" data-view="st">Visualizza</button><button class="btn ghost" type="button" data-blank="st">Contratto vuoto</button><button class="btn" type="button" data-pdf="st-c">Scarica il contratto in PDF</button></span></div>
+    <p class="hint">Prezzi, sconti ed elenco clienti dei moduli d'ordine arrivano dal preventivo qui sopra. I campi evidenziati si compilano e si correggono scrivendoci dentro; le caselle si spuntano con un clic. "Contratto vuoto" scarica lo stesso contratto con tutti i campi in bianco, prezzi compresi, da compilare a mano.</p>
+    <div class="grid2"><label class="f">Full: soglia ed eccedenza nel contratto
+      <select id="st-ecc-u"><option value="doc" selected>A documento (righe × 6 o × 3)</option><option value="riga">A riga di libro giornale</option></select></label></div>
     <p class="hint" data-pdfmsg="st-c" hidden></p>
     <details class="cdata"><summary>Incolla l'elenco dei clienti da Excel</summary>
       <p class="hint">Copia da Excel le colonne, in quest'ordine: ragione sociale, rappresentante legale, partita IVA, periodicità IVA. Una riga per cliente; bastano anche solo le prime colonne.</p>
@@ -380,7 +417,7 @@ td .w-num{width:72px}
     <div class="card"><h2>Preventivo PMI</h2><ol class="steps">
       <li><b>Apri PMI</b> dalla home o dalla barra in alto.</li>
       <li><b>Scrivi ragione sociale, il tuo nome e l'email del cliente</b>. Numero del preventivo e validità sono già proposti e si possono cambiare.</li>
-      <li><b>Scegli il regime</b> (ordinaria, semplificata o holding) e inserisci <b>fatture attive e passive</b> dell'anno. Spunta i corrispettivi se ci sono.</li>
+      <li><b>Scegli il regime</b> (ordinaria, semplificata o holding) e inserisci <b>fatture attive e passive</b> dell'anno. Spunta i corrispettivi (12 documenti) e il personale dipendente (60 documenti) se ci sono. Nel conto trovi anche il <b>canone mensile</b>, con e senza IVA.</li>
       <li><b>Leggi il conto</b>: fascia, minimo di listino, eccedenza stimata e totale con IVA.</li>
       <li><b>Prezzo proposto</b>: lascialo vuoto per il minimo, oppure scrivi un importo più alto. Sotto il minimo il PDF non si scarica.</li>
       <li><b>Scarica il PDF</b> del preventivo, oppure <b>Invia per email</b>: tu resti sempre in copia.</li>
@@ -389,7 +426,7 @@ td .w-num{width:72px}
     </ol></div>
     <div class="card"><h2>Preventivo studio commercialista</h2><ol class="steps">
       <li><b>Apri Commercialisti</b>.</li>
-      <li><b>Scegli come lavorare</b>. <b>Cliente per cliente</b>: incolla da Excel l'elenco dei clienti dello studio (riferimento, tipo di contabilità, fatture di vendita, fatture di acquisto, corrispettivi) o aggiungili a mano. <b>Per composizione</b>: se non hai l'elenco, indica quanti clienti ci sono per tipo e i documenti medi.</li>
+      <li><b>Scegli come lavorare</b>. <b>Cliente per cliente</b>: scarica il modulo Excel, mandalo allo studio e carica il file compilato; oppure incolla l'elenco da Excel o aggiungi i clienti a mano. Per ogni cliente: fatture di vendita e di acquisto <b>oppure</b> righe di libro giornale (se ci sono, le fatture non contano), più corrispettivi e personale. <b>Per composizione</b>: se non hai l'elenco, indica quanti clienti ci sono per tipo e i documenti medi o le righe medie.</li>
       <li><b>Controlla la tabella</b>: una riga per cliente (o per tipo di cliente). Puoi correggere tipo, esigenza e numeri, togliere righe o aggiungerne.</li>
       <li><b>Importo per cliente</b>: vuoto vale il listino; puoi alzarlo. Sotto il listino la cella diventa rossa e l'importo torna al minimo.</li>
       <li><b>Fascia Light</b>: si aggiorna da sola in base al numero di licenze Light e Light Plus.</li>
@@ -872,7 +909,8 @@ const LISTINO = Object.freeze({
     ord2: 3300, ord2Max: 1500,  // ordinaria fino a 1.500 documenti
     sem: 2000, semMax: 500,     // semplificata fino a 500 documenti
     ecc: 1.5,                   // € per documento oltre soglia, a consuntivo
-    corr: 12,                   // documenti l'anno aggiunti se ci sono corrispettivi
+    corr: 12,                   // corrispettivi: 1 documento al mese
+    pers: 60,                   // prospetto del personale: 5 documenti al mese (regola del 19/11/2026)
   },
   light: {
     fisso: 600,                 // € l'anno per ditta, mai scontato
@@ -883,7 +921,11 @@ const LISTINO = Object.freeze({
     // Lo sconto vale sull'intero cumulo di licenze Light + Light Plus.
     fasce: [[10, 0], [20, 10], [30, 20], [50, 30], [100, 40], [null, 50]],
   },
-  full: { op: 2700, hold: 1600, sem: 1600, forf: 200, inclusi: 1500, ecc: 1.5 },
+  // Full: minimo per tipo e documenti inclusi per tipo (19/11/2026: semplificata e holding 500).
+  // I documenti inclusi diventano righe con lo stesso moltiplicatore del Light (×6 / ×3);
+  // le righe oltre soglia costano quanto una riga Light nella fascia in vigore.
+  // Le forfettarie pagano solo il fisso.
+  full: { op: 2700, hold: 1600, sem: 1600, forf: 200, inclusi: { op: 1500, hold: 500, sem: 500 } },
 });
 
 /** Tipi di cliente dello studio (chiave usata anche in LISTINO.full). */
@@ -1022,37 +1064,62 @@ function fascia(licenze) {
   };
 }
 
-/** Righe di libro giornale stimate per documento: ×6 ordinarie, ×3 semplificate. */
+/** Moltiplicatore documenti → righe di libro giornale: ×6 ordinarie (holding comprese), ×3 semplificate. */
 const righePerDocumento = tipo => tipo === 'sem' ? LISTINO.light.mSem : LISTINO.light.mOrd;
-/** Le forfettarie in Light e Light Plus pagano un importo fisso, senza quota a riga. */
-const forfettariaLight = c => c.tipo === 'forf' && c.serv !== 'full';
+/** Le forfettarie pagano un importo fisso, senza quota a riga, in ogni servizio. */
+const forfettaria = c => c.tipo === 'forf';
+/** Compatibilità con il contratto (51/61): forfettaria in Light o Light Plus. */
+const forfettariaLight = c => forfettaria(c) && c.serv !== 'full';
 
 /**
- * Prezzo di listino di UN cliente dello studio.
- * Light / Light Plus: fisso + righe stimate × prezzo per riga della fascia.
- * Forfettarie in Light / Light Plus: importo fisso (LISTINO.light.forf).
- * Full: minimo per tipo + documenti oltre soglia.
- * @param {{tipo:string, serv:string, docs:number}} c
+ * Righe di libro giornale di un cliente in un anno.
+ * Base: le righe scritte a mano (rg) se ci sono, altrimenti le fatture (docs) × 6 o × 3.
+ * Le righe a mano NON si moltiplicano. Corrispettivi (co) e prospetto del personale
+ * (pe = sì → LISTINO.pmi.pers documenti) si aggiungono sempre, × 6 o × 3.
+ * @param {{tipo:string, docs:number, rg?:number, co?:number, pe?:boolean}} c
+ */
+function righeCliente(c) {
+  const m = righePerDocumento(c.tipo);
+  const base = c.rg > 0 ? c.rg : (c.docs || 0) * m;
+  return base + ((c.co || 0) + (c.pe ? LISTINO.pmi.pers : 0)) * m;
+}
+
+/**
+ * Prezzo di listino di UN cliente dello studio, diviso in canone e costo variabile.
+ * Light / Light Plus: 600 € fissi + righe × prezzo per riga della fascia.
+ * Full: minimo per tipo + righe oltre la soglia (documenti inclusi × 6 o × 3)
+ *       × prezzo per riga della fascia.
+ * Forfettarie, in ogni servizio: importo fisso, nessuna quota variabile.
+ * @param {{tipo:string, serv:string, docs:number, rg?:number, co?:number, pe?:boolean}} c
  * @param {number} prezzoRiga  € per riga della fascia corrente
- * @returns {{righe:?number, listino:number}} righe = null per il Full
+ * @returns {{righe:?number, soglia:?number, canone:number, variabile:number, listino:number}}
+ *          righe = null per le forfettarie; soglia = righe incluse (solo Full)
  */
 function prezzoCliente(c, prezzoRiga) {
-  if (c.serv === 'full') {
-    return { righe: null, listino: LISTINO.full[c.tipo] + Math.max(0, c.docs - LISTINO.full.inclusi) * LISTINO.full.ecc };
+  const F = LISTINO.full, full = c.serv === 'full';
+  if (forfettaria(c)) {
+    const canone = full ? F.forf : LISTINO.light.forf;
+    return { righe: null, soglia: null, canone, variabile: 0, listino: canone };
   }
-  if (forfettariaLight(c)) return { righe: null, listino: LISTINO.light.forf };
-  const righe = c.docs * righePerDocumento(c.tipo);
-  return { righe, listino: LISTINO.light.fisso + righe * prezzoRiga };
+  const righe = righeCliente(c);
+  if (full) {
+    const soglia = F.inclusi[c.tipo] * righePerDocumento(c.tipo);
+    const variabile = Math.max(0, righe - soglia) * prezzoRiga;
+    return { righe, soglia, canone: F[c.tipo], variabile, listino: F[c.tipo] + variabile };
+  }
+  const variabile = righe * prezzoRiga;
+  return { righe, soglia: null, canone: LISTINO.light.fisso, variabile, listino: LISTINO.light.fisso + variabile };
 }
 
 /**
  * Preventivo PMI.
- * @param {{reg:'ord'|'sem'|'hold', att:number, pas:number, corr:boolean, ov:?number}} d
+ * @param {{reg:'ord'|'sem'|'hold', att:number, pas:number, corr:boolean, pers:boolean, ov:?number}} d
+ *        documenti = fatture attive + passive + corrispettivi (1 × 12) + prospetto del personale (5 × 12)
  *        ov = prezzo proposto; null = minimo di listino
  */
 function calcPmi(d) {
   const L = LISTINO.pmi;
-  const docs = d.att + d.pas + (d.corr ? L.corr : 0);
+  const docs = d.att + d.pas + (d.corr ? L.corr : 0) + (d.pers ? L.pers : 0);
   let base, soglia, nome;
   if (d.reg === 'sem') { base = L.sem; soglia = L.semMax; nome = 'Semplificata'; }
   else if (d.reg === 'hold') { base = L.hold; soglia = L.holdMax; nome = 'Holding'; }
@@ -1061,13 +1128,15 @@ function calcPmi(d) {
   const oltre = Math.max(0, docs - soglia), ecc = oltre * L.ecc;
   const appl = d.ov == null ? base : d.ov;
   const imp = appl + ecc, iva = imp * LISTINO.iva / 100;
-  return { docs, base, soglia, nome, oltre, ecc, appl, imp, iva, tot: imp + iva, sotto: appl < base - 0.005 };
+  // canone mensile = prezzo annuo / 12; l'eccedenza si paga a consuntivo e non entra nel canone
+  const mese = appl / 12;
+  return { docs, base, soglia, nome, oltre, ecc, appl, imp, iva, tot: imp + iva, mese, meseIva: mese * (1 + LISTINO.iva / 100), sotto: appl < base - 0.005 };
 }
 
 /**
  * Preventivo studio. Ogni riga è un gruppo di clienti uguali.
  * Sconto % e mesi agevolati valgono SOLO per i clienti in Light Plus.
- * @param {Array<{tipo,serv,n,docs,ov}>} righe  n = quanti clienti; ov = importo per cliente o null
+ * @param {Array<{tipo,serv,n,docs,rg,co,pe,ov}>} righe  n = quanti clienti; ov = importo per cliente o null
  * @param {number} scPct     sconto % sul Light Plus
  * @param {number} mesi      mesi di avvio agevolati (0-3)
  * @param {number} promoPct  50 = al 50%, 100 = gratuiti
@@ -1079,20 +1148,24 @@ function calcStudio(righe, scPct, mesi, promoPct) {
   // senza eccezioni; le forfettarie contano per la fascia ma pagano comunque l'importo fisso.
   const nL = righe.reduce((a, c) => a + (c.serv !== 'full' ? quanti(c) : 0), 0);
   const f = fascia(nL);
-  let lis = 0, app = 0, plusApp = 0, sotto = 0, n = 0;
+  let lis = 0, app = 0, plusApp = 0, sotto = 0, n = 0, canoni = 0, variabili = 0;
   const cnt = { light: 0, plus: 0, full: 0 };
   const rows = righe.map(c => {
     const p = prezzoCliente(c, f.prezzo), appl = c.ov == null ? p.listino : c.ov, delta = appl - p.listino, q = quanti(c);
     lis += p.listino * q; app += appl * q; cnt[c.serv] += q; n += q;
+    canoni += p.canone * q; variabili += p.variabile * q;
     if (c.serv === 'plus') plusApp += appl * q;
     if (delta < -0.005 && q) sotto++;
-    return { c, q, righe: p.righe, listino: p.listino, appl, delta };
+    return { c, q, righe: p.righe, soglia: p.soglia, canone: p.canone, variabile: p.variabile, listino: p.listino, appl, delta };
   });
   const sc = plusApp * scPct / 100;                               // sconto ricorrente
   const regime = app - sc;                                         // imponibile dal secondo anno
   const promo = plusApp * (1 - scPct / 100) / 12 * mesi * promoPct / 100; // solo primo anno
-  const primo = regime - promo, iva = primo * LISTINO.iva / 100;
-  return { n, nL, f, rows, lis, app, cnt, sotto, sc, regime, promo, primo, iva, tot: primo + iva };
+  const primo = regime - promo, iva = primo * LISTINO.iva / 100, conIva = 1 + LISTINO.iva / 100;
+  // canone mensile a regime (dal secondo anno) e, se ci sono mesi agevolati, quanto si paga in quei mesi
+  const mese = regime / 12, meseAgev = mesi ? (regime - plusApp * (1 - scPct / 100) * promoPct / 100) / 12 : null;
+  return { n, nL, f, rows, lis, app, canoni, variabili, cnt, sotto, sc, regime, promo, primo, iva, tot: primo + iva,
+    mese, meseIva: mese * conIva, meseAgev, meseAgevIva: meseAgev == null ? null : meseAgev * conIva };
 }
 
 /* ==========================================================================
@@ -1201,11 +1274,12 @@ const pdfTxt = s => String(s).replace(/−/g, '-').replace(/[  ]/g, ' ').rep
 /** Anteprima del preventivo dentro l'elemento con quell'id. */
 function renderSheet(id, q) {
   const cls = c => c.r ? ' class="num"' : '';
+  $('#' + id).classList.toggle('small', !!q.small);   // molte colonne: caratteri più piccoli
   $('#' + id).innerHTML = `
     <div class="sh-top"><img src="${BRAND.logo}" alt="Yuxme"><div><b>Preventivo</b>${esc(q.data)}</div></div>
     <div class="sh-meta">${q.meta.map(m => `<div><span>${esc(m[0])}</span>${esc(m[1])}</div>`).join('')}</div>
-    <table><thead><tr>${q.cols.map(c => `<th${cls(c)}>${esc(c.t)}</th>`).join('')}</tr></thead>
-      <tbody>${q.rows.map(r => `<tr>${r.map((v, i) => `<td${cls(q.cols[i])}>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <div class="sh-tab"><table><thead><tr>${q.cols.map(c => `<th${cls(c)}>${esc(c.t)}</th>`).join('')}</tr></thead>
+      <tbody>${q.rows.map(r => `<tr>${r.map((v, i) => `<td${cls(q.cols[i])}>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
     <div class="sh-tot">${q.totals.map(t => `<div${t[2] ? ' class="big"' : ''}><span>${esc(t[0])}</span><span>${esc(t[1])}</span></div>`).join('')}</div>
     <div class="sh-notes">${q.notes.map(n => `<p>${esc(n)}</p>`).join('')}</div>`;
 }
@@ -1231,20 +1305,21 @@ function makePdf(q) {
   y += 13;
 
   // righe
-  const destra = {}; q.cols.forEach((c, i) => { if (c.r) destra[i] = { halign: 'right' }; });
+  // colonne numeriche: allineate a destra e mai spezzate su due righe; vanno a capo i testi
+  const destra = {}; q.cols.forEach((c, i) => { if (c.r) destra[i] = { halign: 'right', cellWidth: 'wrap' }; });
   doc.autoTable({
     startY: y, margin: { left: M, right: M, bottom: 18 }, head: [q.cols.map(c => c.t)], body: q.rows.map(r => r.map(pdfTxt)),
-    styles: { font: 'helvetica', fontSize: 9, cellPadding: 2.2, textColor: K.ink, lineColor: [217, 222, 232] },
-    headStyles: { fillColor: K.accent, textColor: 255, fontStyle: 'bold', fontSize: 8.5 },
+    styles: { font: 'helvetica', fontSize: q.small ? 7.8 : 9, cellPadding: q.small ? 1.8 : 2.2, textColor: K.ink, lineColor: [217, 222, 232] },
+    headStyles: { fillColor: K.accent, textColor: 255, fontStyle: 'bold', fontSize: q.small ? 7.5 : 8.5 },
     alternateRowStyles: { fillColor: [248, 249, 252] }, columnStyles: destra,
     didParseCell: d => { if (d.section === 'head' && q.cols[d.column.index].r) d.cell.styles.halign = 'right'; },
   });
 
   // totali, allineati a destra
   doc.autoTable({
-    startY: doc.lastAutoTable.finalY + 7, margin: { left: W - M - 88, right: M, bottom: 18 }, theme: 'plain', pageBreak: 'avoid',
+    startY: doc.lastAutoTable.finalY + 7, margin: { left: W - M - 110, right: M, bottom: 18 }, theme: 'plain', pageBreak: 'avoid',
     body: q.totals.map(t => [pdfTxt(t[0]), pdfTxt(t[1])]),
-    styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 1.8, textColor: K.ink }, columnStyles: { 0: { textColor: K.muted }, 1: { halign: 'right' } },
+    styles: { font: 'helvetica', fontSize: 9.5, cellPadding: 1.8, textColor: K.ink }, columnStyles: { 0: { textColor: K.muted }, 1: { halign: 'right', cellWidth: 34 } },
     didParseCell: d => { if (q.totals[d.row.index][2]) Object.assign(d.cell.styles, { fillColor: K.soft, fontStyle: 'bold', fontSize: 11, textColor: K.accent, cellPadding: 3 }); },
   });
 
@@ -1442,7 +1517,9 @@ ${SEPA('Yuxme S.r.l.')}`;
 
 const ST_INTRO=`Il Servizio consiste nella fornitura di un'infrastruttura tecnologica integrata (Gestionale, Web App e AI) finalizzata all'automazione del data entry contabile e al servizio di consulenza in ambito contabile e dichiarativi fiscali.
 Con il servizio full viene concesso, per ogni utente del Cliente, l’accesso alla piattaforma integrata con IA per l’emissione, la ricezione e il caricamento dei documenti, la consultazione quotidiana di dashboard con i principali dati contabili aggiornati, la tenuta della contabilità ed elaborazione adempimenti fiscali, il supporto di un Cont Controller dedicato, che registrerà e supervisionerà la contabilità e curerà l’elaborazione dei dichiarativi routinari, Accounting Manager che svolgerà l’attività di consulenza periodica oltre che chisura delle situazioni annuali con calcolo imposte, elaborazione dichiarativi e deposito di Bilanci.`;
-const dslStudio=(has,cond,bozza)=>`# CONTRATTO DI SERVIZI LICENZA D'USO PIATTAFORMA, SUPPORTO CONTABILE, FULL ASSISTANCE (PARTNER/PROFESSIONISTA)
+/* u = unità dell'eccedenza Full scelta nel menu del contratto (61): documenti o righe di libro giornale.
+ * has.fullSem = ci sono clienti Full in semplificata, con soglia e prezzo propri. */
+const dslStudio=(has,cond,bozza,u)=>`# CONTRATTO DI SERVIZI LICENZA D'USO PIATTAFORMA, SUPPORTO CONTABILE, FULL ASSISTANCE (PARTNER/PROFESSIONISTA)
 La società [[soc|denominazione dello studio]] con sede in [[sede|sede]] codice fiscale e partita iva [[piva|codice fiscale e partita IVA]] nella persona del suo legale rappresentante Dott. [[sig|nome e cognome]] , nato a [[natoA|luogo]] ([[natoPr|prov.]] ) il [[natoIl|data]] codice fiscale [[cf|codice fiscale]] , domiciliato in [[dom|domicilio]] Iscritto all'Ordine dei Dottori Commercialisti e degli Esperti Contabili di [[ordine|sede dell'Ordine]] al n. [[ordN|numero]] sez. [[ordSez|sezione]] , di seguito “Professionista” .
 = E
 YUXME SRL (divisione software del gruppo Allcore S.p.A.) con sede in Milano, Via San Gregorio n. 55 - 20124 Milano partita I.V.A. 10819810960, PEC: yuxme@legal.email.it, in persona del legale rappresentante Andrea Agnoli, PEC: yuxme@legal.email.it, di seguito anche “Yuxme” o “Società di Servizi” che opera anche attraverso il ricorso a collaboratori, piattaforme web, subfornitori, risorse umane dislocate all’interno dell’Unione Europea, ricorrendo esclusivamente a professionisti abilitati nelle materie riservate, anche connesse o strumentali
@@ -1509,9 +1586,9 @@ Per le prestazioni di cui al § 1. (Gestione contabile) il Professionista corris
 COSTO FISSO: [[lFisso|importo]]€ + iva annui (pari a [[lMese|importo]]€ +iva mensili) per ogni cliente attivato
 COSTO VARIABILE: [[lRiga|importo]]€ + iva per ogni riga contabilizzata
 Qualora appositamente selezionata, per le prestazioni di cui al § 2. (Modalità Full Assistance) il Professionista corrisponderà a Yuxme:
-COSTO FISSO: [[fOp|importo]] + iva annui (pari a € [[fOpM|importo]] +iva mensili) per ogni cliente finale non holding con n.[[fDoc|numero]] documenti contabili compresi nel prezzo;
-COSTO FISSO: [[fHold|importo]] + iva annui (pari a € [[fHoldM|importo]] +iva mensili) per ogni cliente finale holding con n.[[fDoc|numero]] documenti contabili compresi nel prezzo;
-COSTO VARIABILE: [[fEcc|importo]]€ + iva per ogni documento eccedente contabilizzato
+COSTO FISSO: [[fOp|importo]] + iva annui (pari a € [[fOpM|importo]] +iva mensili) per ogni cliente finale non holding con n.[[fDoc|numero]] ${u.plur} ${u.compresi} nel prezzo${has.fullSem?` (n.[[fDocS|numero]] ${u.plur} per i clienti in contabilità semplificata)`:''};
+COSTO FISSO: [[fHold|importo]] + iva annui (pari a € [[fHoldM|importo]] +iva mensili) per ogni cliente finale holding con n.[[fDocH|numero]] ${u.plur} ${u.compresi} nel prezzo;
+COSTO VARIABILE: [[fEcc|importo]]€ + iva per ogni ${u.sing}${has.fullSem&&!u.riga?' ([[fEccS|importo]]€ + iva per i clienti in contabilità semplificata)':''}
 ${cond?'CONDIZIONI PARTICOLARI: [[cond|condizioni particolari]]':''}
 Mese Decorrenza: il corrispettivo fisso e/o variabile del servizio di gestioni contabile e/o modalità full assistance per singolo cliente decorre dal mese di attivazione per intero.
 Il pagamento avverrà in via anticipata entro il giorno 5 di ogni mese tramite addebito SEPA. Yuxme si riserva la facoltà di sospendere o interrompere il servizio di registrazione contabile ex art. 1460 c.c. qualora il Professionista non dovesse corrispondere a Yuxme gli importi tra di essi concordati relativi alla registrazione contabile dei documenti caricati dall’UTENTE.
@@ -1557,8 +1634,8 @@ ${bozza?'BOZZA IN REVISIONE: i clienti in regime semplificato e forfettario sono
 @tab:fullnh
 PRICING:
 COMPENSO ANNUALE : indicato in tabella per ciascun cliente attivato, + iva
-NUMERO DI DOCUMENTI DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDoc|numero]]
-COMPENSO PER DOCUMENTI EXTRA: [[fEcc|importo]] € a documento
+NUMERO DI ${u.PLUR} DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDoc|numero]]${has.fullSem?' (contabilità semplificata: [[fDocS|numero]])':''}
+COMPENSO PER ${u.EXTRA}: [[fEcc|importo]] € ${u.a}${has.fullSem&&!u.riga?' (contabilità semplificata: [[fEccS|importo]] €)':''}
 DECORRENZA: il corrispettivo del servizio per singolo cliente attivato decorre dal mese di attivazione per intero.`:''}
 ${has.fullh?`@br
 @style:modulo
@@ -1568,8 +1645,8 @@ ${ST_INTRO}
 @tab:fullh
 PRICING:
 COMPENSO ANNUALE: indicato in tabella per ciascun cliente attivato, + iva
-NUMERO DI DOCUMENTI DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDoc|numero]]
-COMPENSO PER DOCUMENTI EXTRA: [[fEcc|importo]] € a documento
+NUMERO DI ${u.PLUR} DA CONTABILIZZARE COMPRESO NEL COMPENSO ANNUALE: [[fDocH|numero]]
+COMPENSO PER ${u.EXTRA}: [[fEcc|importo]] € ${u.a}
 DECORRENZA: il corrispettivo del servizio per singolo cliente attivato decorre dal mese di attivazione per intero.`:''}
 ${SEPA('Yuxme S.r.l.')}
 ${PRIVACY}`;
@@ -1588,9 +1665,11 @@ ${PRIVACY}`;
  * ========================================================================== */
 
 /** Stato dei due contratti. min = soglie sotto cui un prezzo non può scendere. */
+/** Nome dei file PDF dei contratti; quello compilato aggiunge "_ragione sociale". */
+const CONTRATTO_FILE = { pmi: 'yuxme_pmi', st: 'yuxme_commercialisti' };
 const C = {
-  pmi: { user: {}, auto: {}, min: {}, dsl: DSL_PMI, tabs: {}, file: 'Contratto Yuxme PMI' },
-  st: { user: {}, auto: {}, min: {}, dsl: '', tabs: {}, file: 'Contratto Yuxme' },
+  pmi: { user: {}, auto: {}, min: {}, dsl: DSL_PMI, tabs: {}, file: CONTRATTO_FILE.pmi },
+  st: { user: {}, auto: {}, min: {}, dsl: '', tabs: {}, file: CONTRATTO_FILE.st },
 };
 
 /** Campo ripetuto → campo della prima parte da cui prende il valore. */
@@ -1600,7 +1679,7 @@ const FTYPE = { cf: 'cf', sCf: 'cf', cfAz: 'cfpiva', sPiva: 'cfpiva', piva: 'piv
 /** Nel contratto studi "piva" è «codice fiscale e partita iva»: accetta entrambi. */
 const ftype = (c, k) => c === 'st' && k === 'piva' ? 'cfpiva' : FTYPE[k];
 /** Nomi leggibili dei campi prezzo, per i messaggi d'errore. */
-const NOMI = { canone: 'canone mensile', lFisso: 'costo fisso Light', lMese: 'costo fisso mensile Light', lRiga: 'prezzo per riga', fOp: 'costo fisso Full non holding', fOpM: 'mensile Full non holding', fHold: 'costo fisso Full holding', fHoldM: 'mensile Full holding', fEcc: 'costo per documento eccedente' };
+const NOMI = { canone: 'canone mensile', lFisso: 'costo fisso Light', lMese: 'costo fisso mensile Light', lRiga: 'prezzo per riga', fOp: 'costo fisso Full non holding', fOpM: 'mensile Full non holding', fHold: 'costo fisso Full holding', fHoldM: 'mensile Full holding', fEcc: 'costo per documento o riga eccedente', fEccS: 'costo per documento eccedente, semplificate' };
 const TABCOLS = ['Ragione sociale', 'Rappresentante legale', 'P.Iva', 'Regime', 'Periodicità iva'];
 /** Campo modificabile di ogni colonna delle tabelle clienti (null = sola lettura). */
 const TABFIELDS = ['nome', 'rl', 'pi', null, 'per'];
@@ -1637,7 +1716,9 @@ function derived(c, k) {
 }
 
 /** Valore corrente di un campo (vedi l'ordine in testa al file). */
-const cval = (c, k) => C[c].user[k] != null ? C[c].user[k] : (ALIAS[k] && cval(c, ALIAS[k])) || derived(c, k) || C[c].auto[k] || '';
+/** true solo mentre si genera il contratto vuoto: ogni campo resta da compilare a mano. */
+let VUOTO = false;
+const cval = (c, k) => VUOTO ? '' : C[c].user[k] != null ? C[c].user[k] : (ALIAS[k] && cval(c, ALIAS[k])) || derived(c, k) || C[c].auto[k] || '';
 
 /** Testo → blocchi { t: tipo, x: contenuto }. La sintassi è descritta in 50. */
 const parseDsl = s => s.split('\n').map(l => l.trim()).filter(Boolean).map(l =>
@@ -1970,7 +2051,7 @@ const pmi = { reg: 'ord' };
 /** Dati del modulo PMI nella forma attesa da calcPmi. */
 function leggiPmi() {
   const ov = $('#pmi-ov').value;
-  return { reg: pmi.reg, att: num($('#pmi-att').value), pas: num($('#pmi-pas').value), corr: $('#pmi-corr').checked, ov: ov === '' ? null : num(ov) };
+  return { reg: pmi.reg, att: num($('#pmi-att').value), pas: num($('#pmi-pas').value), corr: $('#pmi-corr').checked, pers: $('#pmi-pers').checked, ov: ov === '' ? null : num(ov) };
 }
 
 function renderPmi() {
@@ -1990,7 +2071,8 @@ function renderPmi() {
     <div><span>Imponibile annuo</span><span>${eur(r.imp)}</span></div>
     <div><span>IVA ${LISTINO.iva}%</span><span>${eur(r.iva)}</span></div>
     <div class="tot"><span>Totale annuo</span><span>${eur(r.tot)}</span></div>
-    <div><span>Pari a, al mese (imponibile)</span><span>${eur(r.imp / 12)}</span></div>`;
+    <div><span>Canone mensile, IVA esclusa</span><span>${eur(r.mese)}</span></div>
+    <div><span>Canone mensile, IVA inclusa</span><span>${eur(r.meseIva)}</span></div>`;
 
   const note = [];
   if (r.sotto) note.push(['bad', `Il prezzo proposto è ${eur(r.base - r.appl)} sotto il minimo di listino (${eur(r.base)}).`]);
@@ -2010,9 +2092,11 @@ function renderPmi() {
     cols: [{ t: 'Voce' }, { t: 'Dettaglio' }, { t: 'Importo annuo', r: 1 }],
     rows: [['Canone annuo', `${r.nome}, fino a ${int(r.soglia)} documenti`, eur(r.appl)]]
       .concat(r.oltre ? [['Eccedenza stimata, a consuntivo', `${int(r.oltre)} documenti × ${eur(L.ecc)}`, eur(r.ecc)]] : []),
-    totals: [['Imponibile annuo', eur(r.imp)], [`IVA ${LISTINO.iva}%`, eur(r.iva)], ['Totale annuo', eur(r.tot), 1], ['Pari a, al mese (imponibile)', eur(r.imp / 12)]],
+    totals: [['Imponibile annuo', eur(r.imp)], [`IVA ${LISTINO.iva}%`, eur(r.iva)], ['Totale annuo', eur(r.tot), 1],
+      ['Canone mensile, IVA esclusa', eur(r.mese)], ['Canone mensile, IVA inclusa', eur(r.meseIva)]],
     notes: ['Importi annui.',
-      `Documenti = fatture attive, fatture passive e ricevute${d.corr ? `, più ${L.corr} documenti l'anno per i corrispettivi` : ''}.`,
+      `Documenti = fatture attive, fatture passive e ricevute${d.corr ? `, più ${L.corr} documenti l'anno per i corrispettivi` : ''}${d.pers ? `, più ${L.pers} documenti l'anno per il prospetto del personale` : ''}.`,
+      'Canone mensile = canone annuo diviso 12; l\'eventuale eccedenza si paga a fine anno.',
       `I documenti oltre ${int(r.soglia)} costano ${eur(L.ecc)} l'uno e si calcolano a fine anno sul consuntivo.`],
   };
   renderSheet('pmi-sheet', Q.pmi);
@@ -2021,7 +2105,7 @@ function renderPmi() {
   const a = C.pmi.auto;
   a.soc = nome; a.canone = dec(r.appl / 12); a.soglia = int(r.soglia); a.data = today(); a.sepa = '1';
   C.pmi.min = { canone: r.base / 12 };
-  C.pmi.file = 'Contratto Yuxme PMI' + (nome ? ' - ' + nome : '');
+  C.pmi.file = CONTRATTO_FILE.pmi + (nome ? '_' + nome : '');
   renderContract('pmi');
   syncOutput('pmi');
 }
@@ -2054,33 +2138,37 @@ $('#pmi-ov').addEventListener('change', e => {
  * 61 · PREVENTIVO STUDIO COMMERCIALISTA
  * Due modi di lavorare, stessa tabella e stessi calcoli:
  *   'cli'   cliente per cliente: una riga per cliente, con riferimento, tipo
- *           di contabilità, fatture di vendita, di acquisto e corrispettivi.
- *           Documenti = vendite + acquisti + corrispettivi.
+ *           di contabilità, fatture di vendita e di acquisto OPPURE righe di
+ *           libro giornale, corrispettivi e prospetto del personale.
  *   'comp'  per composizione: una riga per gruppo di clienti uguali, quando
- *           l'elenco dei clienti non c'è.
+ *           l'elenco dei clienti non c'è (documenti medi oppure righe medie).
+ * Le regole di conversione in righe sono in righeCliente (20).
  * Nel contratto ogni cliente ha una scheda da completare (units).
  * ========================================================================== */
 
 /**
  * comp     composizione di partenza (passo 1), precompilata con un ESEMPIO
- * clients  righe del preventivo: { id, tipo, serv, n, docs, ov, units[] }
- *          ov = importo per cliente scelto dall'utente; null = listino
- *          solo in modo 'cli': rif (riferimento), fv, fa, co (fatture di
- *          vendita, di acquisto, corrispettivi), n = 1
+ * clients  righe del preventivo: { id, tipo, serv, n, docs, rg, co, pe, ov, units[] }
+ *          docs = fatture (o documenti medi); rg = righe di libro giornale
+ *          scritte a mano (se > 0 sostituiscono le fatture); co = corrispettivi;
+ *          pe = prospetto del personale sì/no; ov = importo per cliente, null = listino
+ *          solo in modo 'cli': rif (riferimento), fv, fa (fatture di vendita
+ *          e di acquisto, docs = fv + fa), n = 1
  */
 const S = {
-  comp: { op: { n: 4, docs: 750, serv: 'light' }, hold: { n: 1, docs: 120, serv: 'full' }, sem: { n: 6, docs: 350, serv: 'plus' }, forf: { n: 3, docs: 60, serv: 'full' } },
+  comp: { op: { n: 4, docs: 750, rg: 0, serv: 'light' }, hold: { n: 1, docs: 120, rg: 0, serv: 'full' }, sem: { n: 6, docs: 350, rg: 0, serv: 'plus' }, forf: { n: 3, docs: 60, rg: 0, serv: 'full' } },
   clients: [], seq: 0, mode: 'cli',
 };
-const nuovaRiga = (tipo, serv, n, docs) => ({ id: ++S.seq, tipo, serv, n, docs, ov: null, units: [] });
+const nuovaRiga = (tipo, serv, n, docs, rg = 0) => ({ id: ++S.seq, tipo, serv, n, docs, rg, co: 0, pe: false, ov: null, units: [] });
 /** Riga di un singolo cliente (modo 'cli'). */
-const nuovoCliente = (rif, tipo, serv, fv, fa, co) => ({ id: ++S.seq, tipo, serv, n: 1, rif, fv, fa, co, docs: fv + fa + co, ov: null, units: [{ nome: rif }] });
+const nuovoCliente = (rif, tipo, serv, fv, fa, rg, co, pe) => ({ id: ++S.seq, tipo, serv, n: 1, rif, fv, fa, rg, co, pe, docs: fv + fa, ov: null, units: [{ nome: rif }] });
 
 // modulo della composizione: una riga per tipo di cliente
 $('#comp').insertAdjacentHTML('beforeend', Object.keys(TIPI).map(t => `
   <span class="t">${TIPI[t]}</span>
   <input autocomplete="off" id="c-${t}-n" data-t="${t}" data-k="n" type="number" min="0" inputmode="numeric" value="${S.comp[t].n}" aria-label="Quanti clienti: ${TIPI[t]}">
   <input autocomplete="off" id="c-${t}-docs" data-t="${t}" data-k="docs" type="number" min="0" inputmode="numeric" value="${S.comp[t].docs}" aria-label="Documenti medi: ${TIPI[t]}">
+  <input autocomplete="off" id="c-${t}-rg" data-t="${t}" data-k="rg" type="number" min="0" inputmode="numeric" value="${S.comp[t].rg || ''}" placeholder="–" aria-label="Righe medie di libro giornale, in alternativa: ${TIPI[t]}">
   <select class="e" id="c-${t}-serv" data-t="${t}" data-k="serv" aria-label="Esigenza: ${TIPI[t]}">${opts(ESIGENZE, S.comp[t].serv)}</select>`).join(''));
 $('#comp').addEventListener('input', e => {
   const el = e.target; if (!el.dataset.t) return;
@@ -2090,22 +2178,23 @@ $('#comp').addEventListener('input', e => {
 /** Ricrea le righe del preventivo dalla composizione (sostituisce quelle presenti). */
 function genera() {
   S.clients = Object.keys(TIPI).filter(t => S.comp[t].n > 0)
-    .map(t => nuovaRiga(t, S.comp[t].serv, Math.min(Math.round(S.comp[t].n), MAX_CLIENTI_RIGA), S.comp[t].docs));
+    .map(t => nuovaRiga(t, S.comp[t].serv, Math.min(Math.round(S.comp[t].n), MAX_CLIENTI_RIGA), S.comp[t].docs, S.comp[t].rg || 0));
   renderClients();
 }
 
 /** Intestazioni e testi della tabella nei due modi. */
+const REGOLA_RIGHE = 'Righe = righe di libro giornale indicate dallo studio (senza moltiplicatore) oppure, se mancano, fatture × 6 per le ordinarie e × 3 per le semplificate. Corrispettivi e prospetto del personale (60 documenti l\'anno) si aggiungono sempre, × 6 o × 3. Le forfettarie pagano 200 € fissi, in ogni servizio. Full: righe oltre la soglia al prezzo della fascia. L\'importo si può alzare sopra il listino; campo vuoto = listino.';
 const TABELLA = {
   cli: {
     titolo: '2. Prezzo per cliente',
-    testa: ['Riferimento', 'Tipo di contabilità', 'Esigenza', 'Fatture di vendita*', 'Fatture di acquisto*', 'Corri&shy;spettivi*', 'Docu&shy;menti*', 'Righe stimate*', 'Listino*', 'Importo applicato*', 'Controllo', ''],
-    aiuto: 'Documenti = fatture di vendita + fatture di acquisto + corrispettivi dell\'anno. Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate. Le forfettarie pagano 200 € fissi, in ogni servizio. L\'importo si può alzare sopra il listino; campo vuoto = listino.',
-    vuoto: 'Nessun cliente. Incolla l\'elenco da Excel qui sopra oppure premi "Aggiungi un cliente".',
+    testa: ['Riferimento', 'Tipo di contabilità', 'Esigenza', 'Fatture di vendita*', 'Fatture di acquisto*', 'Righe libro giornale*', 'Corri&shy;spettivi*', 'Perso&shy;nale', 'Righe totali*', 'Canone*', 'Costo variabile*', 'Listino*', 'Importo applicato*', 'Al mese*', 'Controllo', ''],
+    aiuto: 'Se scrivi le righe di libro giornale, le fatture non contano più (diventano grigie). ' + REGOLA_RIGHE,
+    vuoto: 'Nessun cliente. Carica il modulo compilato, incolla l\'elenco da Excel qui sopra oppure premi "Aggiungi un cliente".',
   },
   comp: {
     titolo: '2. Prezzo per tipo di cliente',
-    testa: ['Quanti*', 'Tipo di cliente', 'Esigenza', 'Documenti/anno*', 'Righe stimate*', 'Listino per cliente*', 'Importo per cliente*', 'Totale*', 'Controllo', ''],
-    aiuto: 'Righe di libro giornale stimate = documenti × 6 per le ordinarie, × 3 per le semplificate. Le forfettarie pagano 200 € fissi, in ogni servizio. Documenti, righe e importi sono per singolo cliente; il totale moltiplica per il numero di clienti. L\'importo si può alzare sopra il listino; campo vuoto = listino.',
+    testa: ['Quanti*', 'Tipo di cliente', 'Esigenza', 'Documenti/anno*', 'Righe libro giornale*', 'Righe totali*', 'Canone*', 'Costo variabile*', 'Listino per cliente*', 'Importo per cliente*', 'Al mese per cliente*', 'Totale*', 'Controllo', ''],
+    aiuto: 'Valori per singolo cliente; il totale moltiplica per il numero di clienti. Se scrivi le righe medie, i documenti non contano più. ' + REGOLA_RIGHE,
     vuoto: 'Nessuna riga. Compila la composizione qui sopra e premi "Crea il preventivo".',
   },
 };
@@ -2113,7 +2202,7 @@ const TABELLA = {
 /** Ridisegna la tabella (solo quando cambiano le righe: preserva il focus mentre si scrive). */
 function renderClients() {
   const cli = S.mode === 'cli', T = TABELLA[S.mode];
-  const numero = (c, f, v, w, etichetta) => `<td class="num"><input autocomplete="off" class="w-num"${w ? ` style="width:${w}px"` : ''} id="r${c.id}-${f}" data-f="${f}" type="number" min="0" inputmode="numeric" value="${v}" aria-label="${etichetta}"></td>`;
+  const numero = (c, f, v, w, etichetta) => `<td class="num"><input autocomplete="off" class="w-num"${w ? ` style="width:${w}px"` : ''} id="r${c.id}-${f}" data-f="${f}" type="number" min="0" inputmode="numeric" value="${v}"${f === 'rg' ? ' placeholder="–"' : ''} aria-label="${etichetta}"></td>`;
   $('#st-h2').textContent = T.titolo; $('#st-hint').textContent = T.aiuto;
   // l'asterisco nelle intestazioni marca le colonne numeriche, allineate a destra
   $('#st-head').innerHTML = `<tr>${T.testa.map(t => t.endsWith('*') ? `<th class="num">${t.slice(0, -1)}</th>` : `<th>${t}</th>`).join('')}</tr>`;
@@ -2121,15 +2210,26 @@ function renderClients() {
     ${cli ? `<td><input autocomplete="off" class="w-name" style="min-width:150px" id="r${c.id}-rif" data-f="rif" type="text" value="${esc(c.rif)}" placeholder="Nome o codice del cliente" aria-label="Riferimento del cliente"></td>` : numero(c, 'n', c.n, 70, 'Quanti clienti')}
     <td><select class="w-sel" id="r${c.id}-tipo" data-f="tipo" aria-label="Tipo di contabilità">${opts(TIPI, c.tipo)}</select></td>
     <td><select class="w-sel" id="r${c.id}-serv" data-f="serv" aria-label="Esigenza">${opts(SERVIZI, c.serv)}</select></td>
-    ${cli ? numero(c, 'fv', c.fv, 0, 'Fatture di vendita') + numero(c, 'fa', c.fa, 0, 'Fatture di acquisto') + numero(c, 'co', c.co, 0, 'Corrispettivi') + '<td class="num" data-o="docs"></td>'
+    ${cli ? numero(c, 'fv', c.fv, 0, 'Fatture di vendita') + numero(c, 'fa', c.fa, 0, 'Fatture di acquisto')
           : numero(c, 'docs', c.docs, 0, 'Documenti all\'anno per cliente')}
-    <td class="num" data-o="righe"></td><td class="num" data-o="listino"></td>
+    ${numero(c, 'rg', c.rg || '', 0, 'Righe di libro giornale')}
+    ${cli ? numero(c, 'co', c.co, 0, 'Corrispettivi') + `<td class="chk"><input id="r${c.id}-pe" data-f="pe" type="checkbox"${c.pe ? ' checked' : ''} aria-label="Prospetto del personale"></td>` : ''}
+    <td class="num" data-o="righe"></td><td class="num" data-o="canone"></td><td class="num" data-o="variabile"></td><td class="num" data-o="listino"></td>
     <td class="num"><input autocomplete="off" class="w-num" style="width:100px" id="r${c.id}-ov" data-f="ov" type="number" min="0" step="0.01" inputmode="decimal" value="${c.ov == null ? '' : c.ov}" aria-label="Importo per cliente"></td>
+    <td class="num" data-o="mese"></td>
     ${cli ? '' : '<td class="num" data-o="tot"></td>'}
     <td data-o="esito"></td>
     <td><button class="ico" type="button" data-del title="Togli la riga" aria-label="Togli la riga">✕</button></td></tr>`).join('')
     || `<tr><td colspan="${T.testa.length}" style="padding:18px;color:var(--muted)">${T.vuoto}</td></tr>`;
   updateStudio();
+}
+
+/** Righe del canone mensile per conto e PDF: a regime e, se ci sono, nei mesi agevolati. */
+function mensili(r, mesi) {
+  const a = r.promo ? ' a regime' : '', nei = `Nei ${mesi === 1 ? 'mese agevolato' : mesi + ' mesi agevolati'} (Light Plus), al mese`;
+  const out = [[`Canone mensile${a}, IVA esclusa`, eur(r.mese)], [`Canone mensile${a}, IVA inclusa`, eur(r.meseIva)]];
+  if (r.promo) out.push([nei + ', IVA esclusa', eur(r.meseAgev)], [nei + ', IVA inclusa', eur(r.meseAgevIva)]);
+  return out;
 }
 
 /** Ricalcola tutto e aggiorna celle, fascia, totali, foglio e contratto. */
@@ -2142,10 +2242,13 @@ function updateStudio() {
     const tr = $(`#st-body tr[data-id="${x.c.id}"]`); if (!tr) return;
     const sotto = x.delta < -0.005, campo = tr.querySelector('[data-f=ov]');
     const cella = (nome, testo) => { const td = tr.querySelector(`[data-o=${nome}]`); if (td) td.textContent = testo; }; // alcune colonne esistono in un solo modo
-    cella('righe', x.righe == null ? '–' : int(x.righe));
-    cella('listino', eur(x.listino));
+    cella('righe', x.righe == null ? '–' : x.soglia != null ? `${int(x.righe)} di ${int(x.soglia)}` : int(x.righe));
+    cella('canone', eur(x.canone)); cella('variabile', eur(x.variabile));
+    cella('listino', eur(x.listino)); cella('mese', eur(x.appl / 12));
     cella('tot', eur(x.appl * x.q));
-    cella('docs', int(x.c.docs));
+    // righe scritte a mano: fatture (o documenti medi) in grigio, non contano
+    const aMano = x.c.rg > 0 && x.righe != null;
+    tr.querySelectorAll('[data-f=fv],[data-f=fa],[data-f=docs]').forEach(el => { el.classList.toggle('off', aMano); el.title = aMano ? 'Non conta: valgono le righe di libro giornale' : ''; });
     campo.placeholder = dec(x.listino); campo.dataset.min = x.listino; campo.classList.toggle('bad', sotto);
     tr.querySelector('[data-o=esito]').innerHTML = sotto ? `<span class="pill bad">Sotto ${eur(x.delta)}</span>`
       : x.delta > 0.005 ? `<span class="pill ok">Sopra +${eur(x.delta)}</span>` : '<span class="pill info">Listino</span>';
@@ -2155,6 +2258,7 @@ function updateStudio() {
   $('#st-fascia-txt').innerHTML = r.nL
     ? `<b>${r.nL} licenze</b> tra Light e Light Plus: fascia <b>${f.label}</b>, <b>${dec(f.prezzo)} €</b> per riga, più ${eur(L.light.fisso)} fissi per ditta.`
     : 'Nessun cliente in Light o Light Plus: le fasce non si applicano.';
+  if (r.cnt.full) $('#st-fascia-txt').innerHTML += ` Le righe Full oltre soglia costano <b>${dec(f.prezzo)} €</b> l'una.`;
   let da = 1;
   $('#st-tiers').innerHTML = L.light.fasce.map(([fino, sconto], i) => {
     const lab = fino == null ? `oltre ${da - 1}` : `${da}–${fino}`; if (fino != null) da = fino + 1;
@@ -2173,7 +2277,10 @@ function updateStudio() {
   const anno = r.promo ? 'primo anno' : 'annuo';
   $('#st-sum').innerHTML = `
     <div><span>Clienti</span><span>${r.n} (${r.cnt.light} Light, ${r.cnt.plus} Light Plus, ${r.cnt.full} Full)</span></div>
+    <div><span>Canoni fissi (a listino)</span><span>${eur(r.canoni)}</span></div>
+    <div><span>Costi variabili (a listino)</span><span>${eur(r.variabili)}</span></div>
     <div><span>Totale a listino</span><span>${eur(r.lis)}</span></div>
+    ${Math.abs(r.app - r.lis) > 0.005 ? `<div><span>Aumenti sul listino</span><span>+ ${eur(r.app - r.lis)}</span></div>` : ''}
     <div><span>Totale importi applicati</span><span>${eur(r.app)}</span></div>
     ${r.sc ? `<div><span>Light Plus: sconto ${pct(scPct)}</span><span>− ${eur(r.sc)}</span></div>` : ''}
     ${r.promo ? `<div><span>${promoLab}</span><span>− ${eur(r.promo)}</span></div>` : ''}
@@ -2181,6 +2288,7 @@ function updateStudio() {
     <div><span>IVA ${L.iva}%</span><span>${eur(r.iva)}</span></div>
     <div class="tot"><span>Totale ${anno}</span><span>${eur(r.tot)}</span></div>
     ${r.promo ? `<div><span>Imponibile dal secondo anno</span><span>${eur(r.regime)}</span></div>` : ''}
+    ${mensili(r, mesi).map(([k, v]) => `<div><span>${k}</span><span>${v}</span></div>`).join('')}
     <div><span>Media per cliente (imponibile)</span><span>${eur(r.n ? r.primo / r.n : 0)}</span></div>`;
 
   // foglio del preventivo: una riga per cliente oppure per tipo di cliente
@@ -2193,21 +2301,26 @@ function updateStudio() {
     file: 'Preventivo Yuxme' + (nome ? ' - ' + nome : ''), blocked: r.sotto > 0 || !r.n, data: today(), footer: piede(numero, prep, valido),
     meta: metaNumero(numero, valido).concat([['Studio', nome || 'Da indicare'], ['Clienti', `${r.n} (${r.cnt.light} Light, ${r.cnt.plus} Light Plus, ${r.cnt.full} Full Assistance)`]],
       r.nL ? [['Fascia Light', `${f.label}: ${dec(f.prezzo)} € per riga`]] : [], prep ? [['Preparato da', prep]] : []),
+    small: true,
     cols: cli
-      ? [{ t: '#', r: 1 }, { t: 'Cliente' }, { t: 'Tipo di contabilità' }, { t: 'Servizio' }, { t: 'Documenti/anno', r: 1 }, { t: 'Importo annuo', r: 1 }]
-      : [{ t: 'Clienti', r: 1 }, { t: 'Tipo di cliente' }, { t: 'Servizio' }, { t: 'Documenti/anno per cliente', r: 1 }, { t: 'Importo annuo per cliente', r: 1 }, { t: 'Totale annuo', r: 1 }],
-    rows: r.rows.filter(x => x.q).map((x, i) => cli
-      ? [String(i + 1), x.c.rif || `Cliente ${i + 1}`, TIPI[x.c.tipo], SERVIZI[x.c.serv], int(x.c.docs), eur(x.appl)]
-      : [String(x.q), TIPI[x.c.tipo], SERVIZI[x.c.serv], int(x.c.docs), eur(x.appl), eur(x.appl * x.q)]),
-    totals: [['Totale', eur(r.app)]].concat(
+      ? [{ t: '#', r: 1 }, { t: 'Cliente' }, { t: 'Tipo di contabilità' }, { t: 'Servizio' }, { t: 'Righe/anno', r: 1 }, { t: 'Canone', r: 1 }, { t: 'Costo variabile', r: 1 }, { t: 'Importo annuo', r: 1 }, { t: 'Al mese', r: 1 }]
+      : [{ t: 'Clienti', r: 1 }, { t: 'Tipo di cliente' }, { t: 'Servizio' }, { t: 'Righe/anno per cliente', r: 1 }, { t: 'Canone', r: 1 }, { t: 'Costo variabile', r: 1 }, { t: 'Importo per cliente', r: 1 }, { t: 'Al mese per cliente', r: 1 }, { t: 'Totale annuo', r: 1 }],
+    rows: r.rows.filter(x => x.q).map((x, i) => {
+      const righe = x.righe == null ? '–' : int(x.righe), soldi = [eur(x.canone), eur(x.variabile), eur(x.appl), eur(x.appl / 12)];
+      return cli ? [String(i + 1), x.c.rif || `Cliente ${i + 1}`, TIPI[x.c.tipo], SERVIZI[x.c.serv], righe].concat(soldi)
+        : [String(x.q), TIPI[x.c.tipo], SERVIZI[x.c.serv], righe].concat(soldi, [eur(x.appl * x.q)]);
+    }),
+    totals: [['Canoni fissi (a listino)', eur(r.canoni)], ['Costi variabili (a listino)', eur(r.variabili)]].concat(
+      Math.abs(r.app - r.lis) > 0.005 ? [['Aumenti sul listino', '+ ' + eur(r.app - r.lis)]] : [],
+      [['Totale', eur(r.app)]],
       r.sc ? [[`Light Plus: sconto ${pct(scPct)}`, '− ' + eur(r.sc)]] : [], r.promo ? [[promoLab, '− ' + eur(r.promo)]] : [],
       [[`Imponibile ${anno}`, eur(r.primo)], [`IVA ${L.iva}%`, eur(r.iva)], [`Totale ${anno}`, eur(r.tot), 1]],
-      r.promo ? [['Imponibile dal secondo anno', eur(r.regime)]] : []),
-    notes: ['Importi annui.'].concat(
-      cli ? ['Documenti = fatture di vendita + fatture di acquisto + corrispettivi dell\'anno.'] : [],
-      r.nL ? [`Light e Light Plus: ${eur(L.light.fisso)} l'anno per ditta più una quota per riga di libro giornale. Le righe sono stimate: documenti × ${L.light.mOrd} per le ordinarie, × ${L.light.mSem} per le semplificate. Il conteggio definitivo avviene sulle righe effettive.`] : [],
-      attive0.some(x => x.c.tipo === 'forf') ? [`Clienti forfettari: ${eur(L.light.forf)} l'anno ciascuno.`] : [],
-      r.cnt.full ? [`Full Assistance: fino a ${int(L.full.inclusi)} documenti l'anno per cliente; oltre, ${eur(L.full.ecc)} a documento, a consuntivo.`] : [],
+      r.promo ? [['Imponibile dal secondo anno', eur(r.regime)]] : [], mensili(r, mesi)),
+    notes: ['Importi annui; "al mese" = importo annuo diviso 12. Canone e costo variabile sono a listino.'].concat(
+      [`Righe di libro giornale: quelle indicate dallo studio oppure, se mancano, fatture × ${L.light.mOrd} per le ordinarie e × ${L.light.mSem} per le semplificate. Corrispettivi e prospetto del personale (${L.pmi.pers} documenti l'anno) si aggiungono × ${L.light.mOrd} o × ${L.light.mSem}. Il conteggio definitivo avviene sulle righe effettive.`],
+      r.nL ? [`Light e Light Plus: ${eur(L.light.fisso)} l'anno per ditta più ${dec(f.prezzo)} € per riga di libro giornale.`] : [],
+      attive0.some(x => x.c.tipo === 'forf') ? [`Clienti forfettari: ${eur(L.light.forf)} l'anno ciascuno, senza quota per riga.`] : [],
+      r.cnt.full ? [`Full Assistance: compresi ${int(L.full.inclusi.op)} documenti (${int(L.full.inclusi.op * L.light.mOrd)} righe) per le ordinarie operative, ${int(L.full.inclusi.hold)} (${int(L.full.inclusi.hold * L.light.mOrd)} righe) per le holding, ${int(L.full.inclusi.sem)} (${int(L.full.inclusi.sem * L.light.mSem)} righe) per le semplificate; ogni riga in più ${dec(f.prezzo)} €, a consuntivo.`] : [],
       r.promo ? ['I mesi agevolati del Light Plus valgono sul primo anno.'] : [], r.sc ? ['Lo sconto si applica ai soli clienti in Light Plus.'] : []),
   };
   renderSheet('st-sheet', Q.st);
@@ -2215,6 +2328,12 @@ function updateStudio() {
   contractStudio(r, scPct, promoLab);
   syncOutput('st');
 }
+
+/** Come il contratto esprime soglia ed eccedenza del Full (menu "Full: soglia ed eccedenza"). */
+const UNITA_FULL = {
+  doc: { riga: false, plur: 'documenti contabili', PLUR: 'DOCUMENTI', sing: 'documento eccedente contabilizzato', EXTRA: 'DOCUMENTI EXTRA', a: 'a documento', compresi: 'compresi' },
+  riga: { riga: true, plur: 'righe di libro giornale', PLUR: 'RIGHE DI LIBRO GIORNALE', sing: 'riga di libro giornale eccedente contabilizzata', EXTRA: 'RIGHE EXTRA', a: 'a riga', compresi: 'comprese' },
+};
 
 /** Porta nel contratto prezzi, condizioni particolari e tabelle dei moduli d'ordine. */
 function contractStudio(r, scPct, promoLab) {
@@ -2231,14 +2350,20 @@ function contractStudio(r, scPct, promoLab) {
   a.lFisso = dec(L.light.fisso); a.lMese = dec(L.light.fisso / 12); a.lRiga = dec(f.prezzo);
   a.fOp = dec(vOp); a.fOpM = dec(vOp / 12);
   a.fHold = dec(vHold); a.fHoldM = vHold === L.full.hold ? '133,34' : dec(vHold / 12); // 133,34: cifra del contratto originale
-  a.fDoc = int(L.full.inclusi); a.fEcc = dec(L.full.ecc);
+  // eccedenza Full: il menu del contratto sceglie se esprimerla a documento o a riga di libro giornale.
+  // Il prezzo è sempre quello della riga in fascia; a documento vale × 6 (ordinarie) o × 3 (semplificate).
+  const riga = $('#st-ecc-u').value === 'riga', I = L.full.inclusi, mO = L.light.mOrd, mS = L.light.mSem;
+  const u = UNITA_FULL[riga ? 'riga' : 'doc'];
+  a.fDoc = int(riga ? I.op * mO : I.op); a.fDocH = int(riga ? I.hold * mO : I.hold); a.fDocS = int(riga ? I.sem * mS : I.sem);
+  const ecc = riga ? f.prezzo : f.prezzo * mO, eccS = f.prezzo * mS;
+  a.fEcc = dec(ecc); a.fEccS = dec(eccS);
   a.cond = [
     r.nL && f.idx ? `prezzo per riga ridotto a ${dec(f.prezzo)} € per la fascia ${f.label}` : '',
     attive.some(x => forfettariaLight(x.c)) ? `clienti forfettari in Light: ${dec(L.light.forf)} € annui fissi per cliente, senza quota a riga` : '',
     r.sc ? `Light Plus: sconto del ${pct(scPct)} sui corrispettivi` : '',
     r.promo ? promoLab + ', sul primo anno' : '',
   ].filter(Boolean).join('; ');
-  C.st.min = { lFisso: L.light.fisso, lMese: L.light.fisso / 12, lRiga: f.prezzo, fOp: L.full.op, fOpM: L.full.op / 12, fHold: L.full.hold, fHoldM: 133.33, fEcc: L.full.ecc };
+  C.st.min = { lFisso: L.light.fisso, lMese: L.light.fisso / 12, lRiga: f.prezzo, fOp: L.full.op, fOpM: L.full.op / 12, fHold: L.full.hold, fHoldM: 133.33, fEcc: ecc, fEccS: eccS };
 
   // tabelle dei moduli d'ordine: una riga per cliente, con i dati da completare
   const gruppi = { light: x => x.c.serv !== 'full', fullnh: x => x.c.serv === 'full' && x.c.tipo !== 'hold', fullh: x => x.c.serv === 'full' && x.c.tipo === 'hold' };
@@ -2248,15 +2373,16 @@ function contractStudio(r, scPct, promoLab) {
     attive.filter(gruppi[k]).forEach(x => {
       for (let i = 0; i < x.q; i++) {
         const u = x.c.units[i] || (x.c.units[i] = {});
-        rows.push({ id: `${x.c.id}_${i}`, cells: [u.nome || '', u.rl || '', u.pi || '', TIPI[x.c.tipo] + (x.c.serv === 'plus' ? ' (Light Plus)' : ''), u.per || '', int(x.c.docs), eur(x.appl)] });
+        rows.push({ id: `${x.c.id}_${i}`, cells: [u.nome || '', u.rl || '', u.pi || '', TIPI[x.c.tipo] + (x.c.serv === 'plus' ? ' (Light Plus)' : ''), u.per || '', x.righe == null ? '–' : int(k === 'light' || riga ? x.righe : x.righe / righePerDocumento(x.c.tipo)), eur(x.appl)] });
       }
     });
     presenti[k] = rows.length > 0;
-    C.st.tabs[k] = { cols: TABCOLS.concat(k === 'light' ? ['Documenti/anno*', 'Stima annua'] : ['Documenti/anno', 'Compenso annuale']), rows };
+    C.st.tabs[k] = { cols: TABCOLS.concat(k === 'light' ? ['Righe/anno (stima)', 'Stima annua'] : [riga ? 'Righe/anno' : 'Documenti/anno', 'Compenso annuale']), rows };
   }
   const bozza = attive.some(x => x.c.serv === 'full' && (x.c.tipo === 'sem' || x.c.tipo === 'forf'));
-  C.st.dsl = dslStudio(presenti, !!(a.cond || C.st.user.cond), bozza);
-  C.st.file = 'Contratto Yuxme' + (nome ? ' - ' + nome : '');
+  presenti.fullSem = attive.some(x => x.c.serv === 'full' && x.c.tipo === 'sem');
+  C.st.dsl = dslStudio(presenti, !!(a.cond || C.st.user.cond), bozza, u);
+  C.st.file = CONTRATTO_FILE.st + (nome ? '_' + nome : '');
   renderContract('st');
 }
 
@@ -2265,11 +2391,12 @@ function contractStudio(r, scPct, promoLab) {
 $('#st-body').addEventListener('input', e => {
   const el = e.target, tr = el.closest('tr'); if (!tr || !el.dataset.f) return;
   const c = S.clients.find(x => x.id == tr.dataset.id), k = el.dataset.f;
-  c[k] = ['docs', 'fv', 'fa', 'co'].includes(k) ? Math.max(0, num(el.value))
+  c[k] = ['docs', 'fv', 'fa', 'co', 'rg'].includes(k) ? Math.max(0, num(el.value))
+    : k === 'pe' ? el.checked
     : k === 'n' ? Math.min(MAX_CLIENTI_RIGA, Math.max(0, Math.round(num(el.value))))
     : k === 'ov' ? (el.value === '' ? null : num(el.value)) : el.value;
   if (c.rif != null) {            // riga di un singolo cliente
-    c.docs = c.fv + c.fa + c.co;
+    c.docs = c.fv + c.fa;          // corrispettivi e personale entrano in righeCliente
     if (k === 'rif') (c.units[0] || (c.units[0] = {})).nome = c.rif; // il riferimento è anche la ragione sociale nel contratto
   }
   updateStudio();
@@ -2291,7 +2418,7 @@ $('#st-body').addEventListener('click', e => {
 });
 $('#st-gen').addEventListener('click', genera);
 $('#st-add').addEventListener('click', () => { S.clients.push(nuovaRiga('op', 'light', 1, 500)); renderClients(); });
-['st-sc', 'st-pm', 'st-pp', 'st-nome', 'st-prep', 'st-mail', 'st-num', 'st-val'].forEach(id => $('#' + id).addEventListener('input', updateStudio));
+['st-sc', 'st-pm', 'st-pp', 'st-ecc-u', 'st-nome', 'st-prep', 'st-mail', 'st-num', 'st-val'].forEach(id => $('#' + id).addEventListener('input', updateStudio));
 
 /* ---- elenco clienti incollato da Excel ----
  * Riempie le schede dei clienti (units) di una riga del preventivo, così i
@@ -2343,30 +2470,159 @@ const interoDa = v => { const n = parseInt(String(v || '').replace(/[.\s]/g, '')
 /** Corrispettivi: un numero, oppure "sì"/"x" = uno al mese (LISTINO.pmi.corr). */
 const corrispettiviDa = v => /^(s[iì]|x|vero|true)$/i.test(String(v || '').trim()) ? LISTINO.pmi.corr : interoDa(v);
 
-// carica l'elenco incollato: riferimento, tipo, fatture di vendita, fatture di acquisto, corrispettivi
-$('#st-cli-go').addEventListener('click', () => {
-  const msg = $('#st-cli-msg'), serv = $('#st-cli-serv').value;
-  let righe = $('#st-cli-paste').value.split(/\r?\n/).map(l => l.split(/\t|;/).map(v => v.trim())).filter(v => v.some(Boolean));
-  // riga d'intestazione: nessun numero nelle colonne delle fatture
-  if (righe.length && !/\d/.test((righe[0][2] || '') + (righe[0][3] || '')) && /[a-z]/i.test(righe[0].join(''))) righe = righe.slice(1);
-  if (!righe.length) { msg.textContent = 'Incolla almeno una riga con i dati di un cliente.'; return; }
-  const spazio = MAX_CLIENTI_RIGA - S.clients.length; let ignoti = 0;
+/** Prospetto del personale: "sì", "x", "1"… = sì. */
+const siNo = v => /^(s[iì]|x|1|vero|true|yes)$/i.test(String(v || '').trim());
+
+/**
+ * Aggiunge i clienti letti da Excel (incollati o dal modulo compilato).
+ * Colonne, in quest'ordine: riferimento, tipo di contabilità, fatture di vendita,
+ * fatture di acquisto, righe di libro giornale, corrispettivi, prospetto del personale.
+ * La prima riga si salta se è un'intestazione (nessun numero nelle colonne 3-6).
+ * @param {string[][]} righe  celle come testo
+ * @returns {string} messaggio per l'utente
+ */
+function caricaClienti(righe, serv) {
+  righe = righe.map(v => v.map(x => String(x == null ? '' : x).trim())).filter(v => v.some(Boolean));
+  const intestazione = v => !/\d/.test(v.slice(2, 6).join('')) && /[a-z]/i.test(v.join(''));
+  while (righe.length && intestazione(righe[0])) righe = righe.slice(1);
+  if (!righe.length) return 'Non ho trovato righe con i dati di un cliente.';
+  const spazio = MAX_CLIENTI_RIGA - S.clients.length; let ignoti = 0, conRighe = 0;
   righe.slice(0, spazio).forEach(v => {
     const tipo = tipoDaTesto(v[1]); if (!tipo) ignoti++;
-    S.clients.push(nuovoCliente(v[0] || '', tipo || 'op', serv, interoDa(v[2]), interoDa(v[3]), corrispettiviDa(v[4])));
+    const rg = interoDa(v[4]); if (rg) conRighe++;
+    S.clients.push(nuovoCliente(v[0] || '', tipo || 'op', serv, interoDa(v[2]), interoDa(v[3]), rg, corrispettiviDa(v[5]), siNo(v[6])));
   });
-  msg.textContent = `Caricati ${Math.min(righe.length, spazio)} clienti.`
+  renderClients();
+  return `Caricati ${Math.min(righe.length, spazio)} clienti.`
+    + (conRighe ? ` Per ${conRighe} valgono le righe di libro giornale al posto delle fatture.` : '')
     + (ignoti ? ` Per ${ignoti} non ho riconosciuto il tipo di contabilità: li ho messi come ordinaria operativa, controllali.` : '')
     + (righe.length > spazio ? ` ${righe.length - spazio} non caricati: il limite è ${MAX_CLIENTI_RIGA} clienti.` : '');
+}
+
+// elenco incollato da Excel: colonne separate da tabulazioni (o punto e virgola)
+$('#st-cli-go').addEventListener('click', () => {
+  const testo = $('#st-cli-paste').value;
+  $('#st-cli-msg').textContent = caricaClienti(testo.split(/\r?\n/).map(l => l.split(/\t|;/)), $('#st-cli-serv').value);
   $('#st-cli-paste').value = '';
-  renderClients();
 });
 $('#st-cli-add').addEventListener('click', () => {
   if (S.clients.length >= MAX_CLIENTI_RIGA) return;
-  S.clients.push(nuovoCliente('', 'op', $('#st-cli-serv').value, 0, 0, 0)); renderClients();
+  S.clients.push(nuovoCliente('', 'op', $('#st-cli-serv').value, 0, 0, 0, 0, false)); renderClients();
   const campo = $(`#r${S.clients[S.clients.length - 1].id}-rif`); if (campo) campo.focus();
 });
 $('#st-cli-clear').addEventListener('click', () => { S.clients = []; $('#st-cli-msg').textContent = ''; renderClients(); });
+
+/* ==========================================================================
+ * 62 · MODULO EXCEL PER LO STUDIO
+ * "Scarica il modulo": il file Excel vuoto (generato da tools/modulo.py) da
+ * mandare allo studio. "Carica il modulo compilato": legge il file restituito
+ * e riempie la tabella cliente per cliente.
+ * Il file si legge solo nel browser: nessun invio, nessun salvataggio.
+ * Il lettore .xlsx è minimo e senza librerie: apre lo zip con
+ * DecompressionStream e legge celle, testi condivisi e nomi dei fogli.
+ * ========================================================================== */
+
+const MODULO_XLSX = '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';
+const MODULO_NOME = 'Modulo clienti Yuxme.xlsx';
+const MIME_XLSX = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+/** Contenuto dei file di uno zip: { nome: () => Promise<Uint8Array> }. */
+function apriZip(buf) {
+  const b = new Uint8Array(buf), v = new DataView(buf);
+  let fine = -1;                                   // record di fine directory, cercato dal fondo
+  for (let i = b.length - 22; i >= Math.max(0, b.length - 65557); i--) if (v.getUint32(i, true) === 0x06054b50) { fine = i; break; }
+  if (fine < 0) throw new Error('zip');
+  const file = {}, dec = new TextDecoder();
+  let p = v.getUint32(fine + 16, true);
+  for (let k = v.getUint16(fine + 10, true); k > 0; k--) {
+    if (v.getUint32(p, true) !== 0x02014b50) throw new Error('zip');
+    const metodo = v.getUint16(p + 10, true), dim = v.getUint32(p + 20, true);
+    const ln = v.getUint16(p + 28, true), le = v.getUint16(p + 30, true), lc = v.getUint16(p + 32, true), loc = v.getUint32(p + 42, true);
+    const nome = dec.decode(b.subarray(p + 46, p + 46 + ln));
+    const dati = loc + 30 + v.getUint16(loc + 26, true) + v.getUint16(loc + 28, true);
+    file[nome] = async () => {
+      const raw = b.subarray(dati, dati + dim);
+      if (metodo === 0) return raw;
+      if (metodo !== 8) throw new Error('zip');
+      return new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+    };
+    p += 46 + ln + le + lc;
+  }
+  return file;
+}
+
+/** Elementi con quel nome locale, ignorando gli spazi dei nomi. */
+const tag = (el, n) => [...el.getElementsByTagNameNS('*', n)];
+
+/** Righe del foglio "Clienti" (o del primo foglio) come matrice di testi. */
+async function leggiXlsx(buf) {
+  const zip = apriZip(buf), dec = new TextDecoder();
+  const xml = async n => zip[n] ? new DOMParser().parseFromString(dec.decode(await zip[n]()), 'application/xml') : null;
+  const wb = await xml('xl/workbook.xml'), rels = await xml('xl/_rels/workbook.xml.rels');
+  if (!wb || !rels) throw new Error('xlsx');
+  const fogli = tag(wb, 'sheet');
+  const foglio = fogli.find(s => /^clienti$/i.test(s.getAttribute('name'))) || fogli[0];
+  const rid = foglio.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || foglio.getAttribute('r:id');
+  let dove = tag(rels, 'Relationship').find(r => r.getAttribute('Id') === rid).getAttribute('Target');
+  dove = dove.startsWith('/') ? dove.slice(1) : 'xl/' + dove;
+  const ss = await xml('xl/sharedStrings.xml');
+  const testi = ss ? tag(ss, 'si').map(si => tag(si, 't').map(t => t.textContent).join('')) : [];
+  const sh = await xml(dove); if (!sh) throw new Error('xlsx');
+  return tag(sh, 'row').map(row => {
+    const celle = [];
+    tag(row, 'c').forEach(c => {
+      const col = (c.getAttribute('r') || '').replace(/\d+/g, '').split('').reduce((a, l) => a * 26 + l.charCodeAt(0) - 64, 0) - 1;
+      const t = c.getAttribute('t'), val = tag(c, 'v')[0];
+      let x = '';
+      if (t === 's') x = testi[+val.textContent] || '';
+      else if (t === 'inlineStr') x = tag(c, 't').map(e => e.textContent).join('');
+      else if (val) x = t === 'str' || t === 'b' ? val.textContent : String(Math.round(parseFloat(val.textContent)) || 0);
+      celle[col < 0 ? celle.length : col] = x;
+    });
+    return Array.from(celle, x => x || '');
+  });
+}
+
+/** CSV salvato da Excel: separatore ; , o tabulazione, campi tra virgolette. */
+function leggiCsv(testo) {
+  const prima = testo.split(/\r?\n/)[0] || '';
+  const sep = [';', '\t', ','].reduce((a, s) => prima.split(s).length > prima.split(a).length ? s : a, ';');
+  const righe = []; let riga = [], campo = '', q = false;
+  for (let i = 0; i < testo.length; i++) {
+    const ch = testo[i];
+    if (q) { if (ch === '"') { if (testo[i + 1] === '"') { campo += '"'; i++; } else q = false; } else campo += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === sep) { riga.push(campo); campo = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && testo[i + 1] === '\n') i++; riga.push(campo); righe.push(riga); riga = []; campo = ''; }
+    else campo += ch;
+  }
+  if (campo || riga.length) { riga.push(campo); righe.push(riga); }
+  return righe;
+}
+
+/* ---- eventi ---- */
+
+$('#st-mod-get').addEventListener('click', async () => {
+  const msg = $('#st-cli-msg');
+  const bytes = Uint8Array.from(atob(MODULO_XLSX), c => c.charCodeAt(0));
+  try { msg.textContent = await saveFile(bytes.buffer, MODULO_NOME, MIME_XLSX) + ' Mandalo allo studio con il testo della mail qui sotto.'; }
+  catch (err) { msg.textContent = 'Non sono riuscito a scaricare il modulo. Riprova.'; }
+});
+
+$('#st-mod-file').addEventListener('change', async e => {
+  const el = e.target, f = el.files[0], msg = $('#st-cli-msg'); if (!f) return;
+  try {
+    const righe = /\.csv$/i.test(f.name) ? leggiCsv(await f.text()) : await leggiXlsx(await f.arrayBuffer());
+    msg.textContent = caricaClienti(righe, $('#st-cli-serv').value);
+  } catch (err) {
+    msg.textContent = 'Non riesco a leggere il file. Usa il modulo scaricato da qui, salvato in formato Excel (.xlsx) o CSV.';
+  } finally { el.value = ''; }                       // il file non resta collegato alla pagina
+});
+
+$('#st-mail-copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($('#st-mail-txt').textContent); $('#st-mail-msg').textContent = 'Testo copiato.'; }
+  catch (err) { $('#st-mail-msg').textContent = 'Copia non riuscita: seleziona il testo e copialo a mano.'; }
+});
 
 /* ==========================================================================
  * 70 · GUIDA ANIMATA
@@ -2439,6 +2695,29 @@ async function savePdf(doc, nome) {
   }
 }
 
+/**
+ * Consegna un file qualsiasi (es. il modulo Excel), come savePdf.
+ * @param {ArrayBuffer} data
+ * @returns {Promise<string>} messaggio da mostrare
+ */
+async function saveFile(data, filename, mime) {
+  if (STANDALONE) {
+    const url = URL.createObjectURL(new Blob([data], { type: mime }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    return 'File scaricato.';
+  }
+  const dl = await window.claude.use('downloads');
+  if (!dl) return 'Da questa vista il download non è disponibile. Apri la pagina su claude.ai e riprova.';
+  try { await dl.save({ filename, data }); return 'File salvato.'; }
+  catch (err) {
+    if (err && err.code === 'declined') return 'Download annullato.';
+    if (err && err.code === 'rate_limited') return 'C\'è già una richiesta di download aperta: confermala o riprova tra poco.';
+    throw err;
+  }
+}
+
 const FINE = ' Quando hai finito, premi "Cancella i dati".';
 
 /* ---- scarica il PDF (preventivo: data-pdf="pmi|st"; contratto: "pmi-c|st-c") ---- */
@@ -2451,6 +2730,28 @@ document.addEventListener('click', async e => {
     const esito = contratto ? await savePdf(makeContractPdf(key), C[key].file) : await savePdf(makePdf(Q[k]), Q[k].file);
     pdfMsg(k, esito + FINE);
   } catch (err) { pdfMsg(k, 'Non sono riuscito a creare il PDF. Riprova.'); }
+});
+
+/* ---- contratto vuoto (data-blank="pmi|st") ----
+ * Stessa grafica del contratto compilato, ma con tutti i campi in bianco (prezzi
+ * compresi) da compilare a mano. Per gli studi contiene tutti i moduli d'ordine
+ * (Light, Full non holding, Full holding) con righe vuote. Non usa né modifica
+ * i dati inseriti: al termine il contratto compilato torna com'era. */
+const RIGHE_VUOTE = 12;
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-blank]'); if (!b) return;
+  const c = b.dataset.blank, k = c + '-c', prima = { dsl: C[c].dsl, tabs: C[c].tabs };
+  pdfMsg(k, '');
+  try {
+    VUOTO = true;
+    if (c === 'st') {
+      C.st.dsl = dslStudio({ light: true, fullnh: true, fullh: true, fullSem: false }, true, false, UNITA_FULL[$('#st-ecc-u').value === 'riga' ? 'riga' : 'doc']);
+      const vuota = cols => ({ cols, rows: Array.from({ length: RIGHE_VUOTE }, (_, i) => ({ id: 'v' + i, cells: cols.map(() => '') })) });
+      C.st.tabs = { light: vuota(TABCOLS.concat(['Righe/anno (stima)', 'Stima annua'])), fullnh: vuota(TABCOLS.concat(['Documenti/anno', 'Compenso annuale'])), fullh: vuota(TABCOLS.concat(['Documenti/anno', 'Compenso annuale'])) };
+    }
+    pdfMsg(k, await savePdf(makeContractPdf(c), CONTRATTO_FILE[c]));
+  } catch (err) { pdfMsg(k, 'Non sono riuscito a creare il contratto vuoto. Riprova.'); }
+  finally { VUOTO = false; C[c].dsl = prima.dsl; C[c].tabs = prima.tabs; }
 });
 
 /* ---- invia per email ----
@@ -2595,7 +2896,7 @@ function wipeAll(motivo) {
   pmi.reg = 'ord';
   $('#pmi-reg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.r === 'ord'));
   for (const k of ['pmi', 'st']) { C[k].user = {}; C[k].auto = {}; }
-  Object.keys(TIPI).forEach(t => { S.comp[t] = { n: num($(`#c-${t}-n`).value), docs: num($(`#c-${t}-docs`).value), serv: $(`#c-${t}-serv`).value }; });
+  Object.keys(TIPI).forEach(t => { S.comp[t] = { n: num($(`#c-${t}-n`).value), docs: num($(`#c-${t}-docs`).value), rg: num($(`#c-${t}-rg`).value), serv: $(`#c-${t}-serv`).value }; });
   if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
   chiudiViewer();
   ['pmi', 'st'].forEach(k => mostraCodice(k, false));
@@ -2641,15 +2942,20 @@ $('#brandmark').innerHTML = `<img src="${BRAND.logo}" alt="Yuxme">`;
     [`Ordinaria fino a ${int(L.pmi.ord1Max)} documenti`, eur(L.pmi.ord1)], [`Ordinaria fino a ${int(L.pmi.ord2Max)} documenti`, eur(L.pmi.ord2)],
     [`Semplificata fino a ${int(L.pmi.semMax)} documenti`, eur(L.pmi.sem)],
     [`Holding fino a ${int(L.pmi.holdMax)} documenti`, eur(L.pmi.hold)], ['Documento oltre soglia, a consuntivo', eur(L.pmi.ecc)],
-    ['Corrispettivi', `${L.pmi.corr} documenti l'anno`], REGOLA]);
+    ['Corrispettivi', `${L.pmi.corr} documenti l'anno (1 × 12)`], ['Prospetto del personale', `${L.pmi.pers} documenti l'anno (5 × 12)`], REGOLA]);
   tabella('l-full', [
     ['Ordinaria operativa', eur(L.full.op)], ['Ordinaria holding', eur(L.full.hold)],
     ['Semplificata (bozza, in revisione)', eur(L.full.sem)], ['Forfettaria (bozza, in revisione)', eur(L.full.forf)],
-    ['Documenti inclusi per cliente', int(L.full.inclusi)], ['Documento oltre soglia, a consuntivo', eur(L.full.ecc)], REGOLA]);
+    ['Documenti inclusi: ordinaria operativa', `${int(L.full.inclusi.op)} (${int(L.full.inclusi.op * L.light.mOrd)} righe)`],
+    ['Documenti inclusi: holding', `${int(L.full.inclusi.hold)} (${int(L.full.inclusi.hold * L.light.mOrd)} righe)`],
+    ['Documenti inclusi: semplificata', `${int(L.full.inclusi.sem)} (${int(L.full.inclusi.sem * L.light.mSem)} righe)`],
+    ['Riga oltre soglia', 'Prezzo per riga della fascia Light dello studio'], REGOLA]);
   tabella('l-light', [
     ['Canone fisso per ditta', eur(L.light.fisso)], ['Prezzo base per riga', eur(L.light.riga)],
     ['Righe per documento, ordinarie', '× ' + L.light.mOrd], ['Righe per documento, semplificate', '× ' + L.light.mSem],
     ['Forfettaria, importo fisso per cliente', eur(L.light.forf)],
+    ['Righe di libro giornale scritte a mano', 'Al posto delle fatture, senza moltiplicatore'],
+    ['Corrispettivi e personale', 'Sempre in aggiunta, × 6 o × 3'],
     ['Light Plus', 'Come il Light, con sconto % e 1–3 mesi al 50% o gratuiti'], REGOLA]);
   let da = 1;
   tabella('l-fasce', L.light.fasce.map(([fino, sconto]) => {
