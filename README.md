@@ -46,7 +46,7 @@ apparente.
 - Lo sconto di fascia Light vale sull'intero cumulo di licenze Light + Light Plus.
 - Righe: quelle di libro giornale indicate dallo studio (senza moltiplicatore) oppure fatture × 6 (ordinarie) / × 3 (semplificate); corrispettivi e prospetto del personale (60 documenti) si aggiungono sempre × 6 / × 3.
 - Full: inclusi 1.500 documenti (ordinaria), 500 (holding, semplificata); righe oltre soglia al prezzo della fascia Light.
-- PMI: documenti = fatture attive + passive + corrispettivi (1 × 12) + prospetto del personale (5 × 12). Holding 2.500 €.
+- PMI (minimi): holding 2.500 €, semplificata 2.700 €, ordinaria fino a 500 documenti 2.900 €, da 501 a 1.500 documenti 3.300 €. Documenti = fatture attive + passive + corrispettivi (1 × 12) + prospetto del personale (5 × 12).
 - Canone mensile = importo annuo / 12, mostrato con e senza IVA.
 - Modulo Excel per gli studi: `assets/modulo-clienti.xlsx`, generato da `tools/modulo.py`; letto nel browser da `62-modulo.js`.
 - Forfettarie: 200 € fissi per cliente in ogni servizio; in Light contano per la fascia, come ogni altra licenza.

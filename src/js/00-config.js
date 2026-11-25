@@ -39,8 +39,8 @@ const LISTINO = Object.freeze({
     // Holding: 2.500 € deciso da S. Ciancarelli il 18/11/2026. Soglia di 1.500 documenti ripresa
     // dal Full studi (mail "Richiesta preventivo" del 13/10/2026), non ancora confermata.
     hold: 2500, holdMax: 1500,
-    ord2: 3300, ord2Max: 1500,  // ordinaria fino a 1.500 documenti
-    sem: 2000, semMax: 500,     // semplificata fino a 500 documenti
+    ord2: 3300, ord2Max: 1500,  // ordinaria da 501 a 1.500 documenti
+    sem: 2700, semMax: 500,     // semplificata fino a 500 documenti (2.700 dal 25/11/2026)
     ecc: 1.5,                   // € per documento oltre soglia, a consuntivo
     corr: 12,                   // corrispettivi: 1 documento al mese
     pers: 60,                   // prospetto del personale: 5 documenti al mese (regola del 19/11/2026)

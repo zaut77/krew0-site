@@ -11,7 +11,7 @@ $('#brandmark').innerHTML = `<img src="${BRAND.logo}" alt="Yuxme">`;
   const L = LISTINO, REGOLA = ['Regola', 'Prezzi minimi: si può salire, mai scendere'];
   const tabella = (id, righe) => { $('#' + id).innerHTML = righe.map(r => `<span>${esc(r[0])}</span><span>${esc(r[1])}</span>`).join(''); };
   tabella('l-pmi', [
-    [`Ordinaria fino a ${int(L.pmi.ord1Max)} documenti`, eur(L.pmi.ord1)], [`Ordinaria fino a ${int(L.pmi.ord2Max)} documenti`, eur(L.pmi.ord2)],
+    [`Ordinaria fino a ${int(L.pmi.ord1Max)} documenti`, eur(L.pmi.ord1)], [`Ordinaria da ${int(L.pmi.ord1Max + 1)} a ${int(L.pmi.ord2Max)} documenti`, eur(L.pmi.ord2)],
     [`Semplificata fino a ${int(L.pmi.semMax)} documenti`, eur(L.pmi.sem)],
     [`Holding fino a ${int(L.pmi.holdMax)} documenti`, eur(L.pmi.hold)], ['Documento oltre soglia, a consuntivo', eur(L.pmi.ecc)],
     ['Corrispettivi', `${L.pmi.corr} documenti l'anno (1 × 12)`], ['Prospetto del personale', `${L.pmi.pers} documenti l'anno (5 × 12)`], REGOLA]);

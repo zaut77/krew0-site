@@ -82,7 +82,7 @@ test('PMI: fasce ed eccedenza', () => {
   quasi(calcPmi({ reg: 'ord', att: 200, pas: 300, corr: false, ov: null }).base, 2900);
   quasi(calcPmi({ reg: 'ord', att: 320, pas: 410, corr: false, ov: null }).base, 3300);
   const s = calcPmi({ reg: 'sem', att: 300, pas: 288, corr: true, ov: null });
-  assert.equal(s.docs, 600); quasi(s.ecc, 150); quasi(s.imp, 2150);
+  assert.equal(s.docs, 600); quasi(s.ecc, 150); quasi(s.imp, 2850);   // semplificata 2.700 + 100 × 1,50
   assert.equal(calcPmi({ reg: 'ord', att: 100, pas: 100, corr: false, ov: 2000 }).sotto, true);
   const h = calcPmi({ reg: 'hold', att: 10, pas: 40, corr: false, ov: null });      // holding: 2.500
   const pe = calcPmi({ reg: 'ord', att: 200, pas: 200, corr: true, pers: true, ov: null });
